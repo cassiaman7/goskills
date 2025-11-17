@@ -33,4 +33,3 @@ func RunPythonScript(scriptPath string, args []string) (string, error) {
 
 	return stdout.String() + stderr.String(), nil
 }
-

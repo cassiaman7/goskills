@@ -19,9 +19,9 @@ func WikipediaSearch(query string) (string, error) {
 	params.Add("action", "query")
 	params.Add("format", "json")
 	params.Add("prop", "extracts")
-	params.Add("exintro", "") // Return only content before the first section
+	params.Add("exintro", "")     // Return only content before the first section
 	params.Add("explaintext", "") // Return plain text
-	params.Add("redirects", "1") // Resolve redirects
+	params.Add("redirects", "1")  // Resolve redirects
 	params.Add("titles", query)
 
 	searchURL := baseURL + "?" + params.Encode()
