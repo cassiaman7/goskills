@@ -127,5 +127,22 @@ func GetBaseTools() []openai.Tool {
 				},
 			},
 		},
+		// {
+		// 	Type: openai.ToolTypeFunction,
+		// 	Function: &openai.FunctionDefinition{
+		// 		Name:        "web_fetch",
+		// 		Description: "Fetches the clean text content from a given URL. It automatically parses the HTML and returns only the readable text.",
+		// 		Parameters: map[string]interface{}{
+		// 			"type": "object",
+		// 			"properties": map[string]interface{}{
+		// 				"url": map[string]interface{}{
+		// 					"type":        "string",
+		// 					"description": "The full URL to fetch, including the protocol (e.g., 'https://example.com').",
+		// 				},
+		// 			},
+		// 			"required": []string{"url"},
+		// 		},
+		// 	},
+		// },
 	}
 }

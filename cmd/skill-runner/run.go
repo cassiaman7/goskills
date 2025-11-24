@@ -228,6 +228,14 @@ func executeToolCall(toolCall openai.ToolCall, scriptMap map[string]string, skil
 			return "", fmt.Errorf("failed to unmarshal wikipedia_search arguments: %w", err)
 		}
 		toolOutput, err = tool.WikipediaSearch(params.Query)
+	case "web_fetch":
+		var params struct {
+			URL string `json:"url"`
+		}
+		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &params); err != nil {
+			return "", fmt.Errorf("failed to unmarshal web_fetch arguments: %w", err)
+		}
+		toolOutput, err = tool.WebFetch(params.URL)
 	default:
 		// Check if it's a generated script tool
 		if scriptPath, ok := scriptMap[toolCall.Function.Name]; ok {
@@ -434,7 +442,11 @@ func executeSkillWithTools(ctx context.Context, client *openai.Client, cfg *conf
 						Content:    fmt.Sprintf("Error: %v", err),
 					})
 				} else {
-					fmt.Printf("✅ Tool output: %s\n", toolOutput)
+					// if tc.Function.Name == "web_fetch" {
+					// 	fmt.Printf("✅ Tool '%s' executed. Content sent to LLM.\n", tc.Function.Name)
+					// } else {
+					// 	fmt.Printf("✅ Tool output: %s\n", toolOutput)
+					// }
 					// Add tool output to history
 					messages = append(messages, openai.ChatCompletionMessage{
 						Role:       openai.ChatMessageRoleTool,
