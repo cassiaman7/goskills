@@ -40,6 +40,10 @@ You can specify a custom model and API base URL using flags.`,
 			userPrompt = strings.TrimSpace(string(userPromptBytes))
 		}
 
+		if userPrompt == "" {
+			return cmd.Help()
+		}
+
 		// --- LOAD CONFIG ---
 		cfg, err := config.LoadConfig(cmd)
 		if err != nil {

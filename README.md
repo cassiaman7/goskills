@@ -131,14 +131,14 @@ Searches for skills by name or description within a directory. The search is cas
 
 Located in `cmd/skill-runner`, this tool simulates the Claude skill-use workflow by integrating with Large Language Models (LLMs) like OpenAI's models.
 
-#### Building `goskills-runner`
+#### Building `goskills` runner
 You can build the executable from the project root:
 ```shell
-go build -o goskills-runner ./cmd/skill-runner
+go build -o goskills ./cmd/skill-runner
 ```
 
 #### Commands
-Here are the available commands for `goskills-runner`:
+Here are the available commands for `goskills`:
 
 #### run
 Processes a user request by first discovering available skills, then asking an LLM to select the most appropriate one, and finally executing the selected skill by feeding its content to the LLM as a system prompt.
@@ -148,17 +148,17 @@ Processes a user request by first discovering available skills, then asking an L
 ```shell
 # Example with default OpenAI model (gpt-4o)
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
-./goskills-runner run "create an algorithm that generates abstract art"
+./goskills run "create an algorithm that generates abstract art"
 
 # Example with a custom OpenAI-compatible model and API base URL using environment variables
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 export OPENAI_API_BASE="https://qianfan.baidubce.com/v2"
 export OPENAI_MODEL="deepseek-v3"
-./goskills-runner run "create an algorithm that generates abstract art"
+./goskills run "create an algorithm that generates abstract art"
 
 # Example with a custom OpenAI-compatible model and API base URL using command-line flags
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
-./goskills-runner run --model deepseek-v3 --api-base https://qianfan.baidubce.com/v2 "create an algorithm that generates abstract art"
+./goskills run --model deepseek-v3 --api-base https://qianfan.baidubce.com/v2 "create an algorithm that generates abstract art"
 ```
 
 ## Running Tests
