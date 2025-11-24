@@ -33,3 +33,5 @@ go.work.sum
 
 goskills-cli
 goskills
+# Added by goreleaser init:
+dist/
