@@ -172,6 +172,26 @@ func executeToolCall(toolCall openai.ToolCall, scriptMap map[string]string, skil
 			return "", fmt.Errorf("failed to unmarshal run_shell_script arguments: %w", err)
 		}
 		toolOutput, err = tool.RunShellScript(params.ScriptPath, params.Args)
+	case "run_shell_code":
+		var params struct {
+			Code string         `json:"code"`
+			Args map[string]any `json:"args"`
+		}
+		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &params); err != nil {
+			return "", fmt.Errorf("failed to unmarshal run_shell_code arguments: %w", err)
+		}
+		shellTool := tool.ShellTool{}
+		toolOutput, err = shellTool.Run(params.Args, params.Code)
+	case "run_python_code":
+		var params struct {
+			Code string         `json:"code"`
+			Args map[string]any `json:"args"`
+		}
+		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &params); err != nil {
+			return "", fmt.Errorf("failed to unmarshal run_python_code arguments: %w", err)
+		}
+		pythonTool := tool.PythonTool{}
+		toolOutput, err = pythonTool.Run(params.Args, params.Code)
 	case "run_python_script":
 		var params struct {
 			ScriptPath string   `json:"scriptPath"`

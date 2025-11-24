@@ -10,6 +10,27 @@ func GetBaseTools() []openai.Tool {
 		{
 			Type: openai.ToolTypeFunction,
 			Function: &openai.FunctionDefinition{
+				Name:        "run_shell_code",
+				Description: "Executes a shell code snippet and returns its combined stdout and stderr.",
+				Parameters: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"code": map[string]interface{}{
+							"type":        "string",
+							"description": "The shell code snippet to execute.",
+						},
+						"args": map[string]interface{}{
+							"type":        "object",
+							"description": "A map of key-value pairs to pass to the code.",
+						},
+					},
+					"required": []string{"code"},
+				},
+			},
+		},
+		{
+			Type: openai.ToolTypeFunction,
+			Function: &openai.FunctionDefinition{
 				Name:        "run_shell_script",
 				Description: "Executes a shell script and returns its combined stdout and stderr. Use this for general shell commands.",
 				Parameters: map[string]interface{}{
@@ -28,6 +49,27 @@ func GetBaseTools() []openai.Tool {
 						},
 					},
 					"required": []string{"scriptPath"},
+				},
+			},
+		},
+		{
+			Type: openai.ToolTypeFunction,
+			Function: &openai.FunctionDefinition{
+				Name:        "run_python_code",
+				Description: "Executes a Python code snippet and returns its combined stdout and stderr.",
+				Parameters: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"code": map[string]interface{}{
+							"type":        "string",
+							"description": "The Python code snippet to execute.",
+						},
+						"args": map[string]interface{}{
+							"type":        "object",
+							"description": "A map of key-value pairs to pass to the code.",
+						},
+					},
+					"required": []string{"code"},
 				},
 			},
 		},

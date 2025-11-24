@@ -159,6 +159,9 @@ export OPENAI_MODEL="deepseek-v3"
 # Example with a custom OpenAI-compatible model and API base URL using command-line flags
 export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ./goskills run --model deepseek-v3 --api-base https://qianfan.baidubce.com/v2 "create an algorithm that generates abstract art"
+
+# Example with a custom OpenAI-compatible model and API base URL using command-line flags, auto-approve without human-in-the-loop
+./goskills run --auto-approve --model deepseek-v3 --api-base https://qianfan.baidubce.com/v2 "使用markitdown 工具解析网页 https://baike.baidu.com/item/%E5%AD%94%E5%AD%90/1584"
 ```
 
 ## Running Tests
