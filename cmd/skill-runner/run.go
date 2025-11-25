@@ -53,8 +53,13 @@ You can specify a custom model and API base URL using flags.`,
 			AllowedScripts:   cfg.AllowedScripts,
 		}
 
+		agent, err := goskills.NewAgent(runnerCfg)
+		if err != nil {
+			return fmt.Errorf("failed to create agent: %w", err)
+		}
+
 		ctx := context.Background()
-		result, err := goskills.Run(ctx, userPrompt, runnerCfg)
+		result, err := agent.Run(ctx, userPrompt)
 		if err != nil {
 			return err
 		}
