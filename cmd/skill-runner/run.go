@@ -9,6 +9,7 @@ import (
 
 	"github.com/smallnest/goskills"
 	"github.com/smallnest/goskills/config"
+	goskills_mcp "github.com/smallnest/goskills/mcp"
 	"github.com/spf13/cobra"
 )
 
@@ -54,12 +55,54 @@ You can specify a custom model and API base URL using flags.`,
 			Loop:             cfg.Loop,
 		}
 
-		agent, err := goskills.NewAgent(runnerCfg)
+		ctx := context.Background()
+
+		// Initialize MCP Client
+		var mcpClient *goskills_mcp.Client
+		var mcpConfigPath string
+
+		if mcpConfig != "" {
+			mcpConfigPath = mcpConfig
+		} else {
+			// Check local mcp.json
+			if _, err := os.Stat("mcp.json"); err == nil {
+				mcpConfigPath = "mcp.json"
+			} else {
+				// Check ~/.claude.json
+				homeDir, err := os.UserHomeDir()
+				if err == nil {
+					path := fmt.Sprintf("%s/.claude.json", homeDir)
+					if _, err := os.Stat(path); err == nil {
+						mcpConfigPath = path
+					}
+				}
+			}
+		}
+
+		if mcpConfigPath != "" {
+			if cfg.Verbose {
+				fmt.Printf("📂 Loading MCP config from: %s\n", mcpConfigPath)
+			}
+			mcpConfig, err := goskills_mcp.LoadConfig(mcpConfigPath)
+			if err != nil {
+				fmt.Printf("⚠️ Failed to load MCP config: %v\n", err)
+			} else {
+				mcpClient, err = goskills_mcp.NewClient(ctx, mcpConfig)
+				if err != nil {
+					fmt.Printf("⚠️ Failed to create MCP client: %v\n", err)
+				} else {
+					defer mcpClient.Close()
+					if cfg.Verbose {
+						fmt.Println("✅ MCP Client initialized.")
+					}
+				}
+			}
+		}
+
+		agent, err := goskills.NewAgent(runnerCfg, mcpClient)
 		if err != nil {
 			return fmt.Errorf("failed to create agent: %w", err)
 		}
-
-		ctx := context.Background()
 
 		if runnerCfg.Loop {
 			return agent.RunLoop(ctx, userPrompt)
@@ -75,7 +118,10 @@ You can specify a custom model and API base URL using flags.`,
 	},
 }
 
+var mcpConfig string
+
 func init() {
 	rootCmd.AddCommand(runCmd)
 	config.SetupFlags(runCmd)
+	runCmd.Flags().StringVar(&mcpConfig, "mcp-config", "", "Path to MCP configuration file")
 }

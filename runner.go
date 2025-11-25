@@ -11,14 +11,16 @@ import (
 	"strings"
 
 	openai "github.com/sashabaranov/go-openai"
+	"github.com/smallnest/goskills/mcp"
 	"github.com/smallnest/goskills/tool"
 )
 
 // Agent manages the skill discovery, selection, and execution process.
 type Agent struct {
-	client   *openai.Client
-	cfg      RunnerConfig
-	messages []openai.ChatCompletionMessage // Stores the conversation history
+	client    *openai.Client
+	cfg       RunnerConfig
+	messages  []openai.ChatCompletionMessage // Stores the conversation history
+	mcpClient *mcp.Client
 }
 
 // RunnerConfig holds all the necessary configuration for the runner.
@@ -34,7 +36,7 @@ type RunnerConfig struct {
 }
 
 // NewAgent creates and initializes a new Agent.
-func NewAgent(cfg RunnerConfig) (*Agent, error) {
+func NewAgent(cfg RunnerConfig, mcpClient *mcp.Client) (*Agent, error) {
 	if cfg.APIKey == "" {
 		return nil, errors.New("API key is not set")
 	}
@@ -49,9 +51,10 @@ func NewAgent(cfg RunnerConfig) (*Agent, error) {
 	client := openai.NewClientWithConfig(openaiConfig)
 
 	return &Agent{
-		client:   client,
-		cfg:      cfg,
-		messages: []openai.ChatCompletionMessage{}, // Initialize empty message history
+		client:    client,
+		cfg:       cfg,
+		messages:  []openai.ChatCompletionMessage{}, // Initialize empty message history
+		mcpClient: mcpClient,
 	}, nil
 }
 
@@ -101,15 +104,21 @@ func (a *Agent) RunLoop(ctx context.Context, initialPrompt string) error {
 			fmt.Println(finalOutput)
 		}
 
-		fmt.Print("\nContinue in loop? (y/N): ")
+		fmt.Print("\nContinue in loop? (y/N) or enter new prompt: ")
 		answer, _ := reader.ReadString('\n')
-		if strings.TrimSpace(strings.ToLower(answer)) != "y" {
+		answer = strings.TrimSpace(answer)
+
+		if strings.EqualFold(answer, "N") {
 			break
 		}
 
-		fmt.Print("Next prompt: ")
-		currentPrompt, _ = reader.ReadString('\n')
-		currentPrompt = strings.TrimSpace(currentPrompt)
+		if strings.EqualFold(answer, "y") {
+			fmt.Print("Next prompt: ")
+			currentPrompt, _ = reader.ReadString('\n')
+			currentPrompt = strings.TrimSpace(currentPrompt)
+		} else {
+			currentPrompt = answer
+		}
 	}
 	return nil
 }
@@ -227,6 +236,17 @@ func (a *Agent) continueSkillWithTools(ctx context.Context, userPrompt string, s
 	})
 
 	availableTools, scriptMap := GenerateToolDefinitions(skill)
+
+	// Add MCP tools if client is available
+	if a.mcpClient != nil {
+		mcpTools, err := a.mcpClient.GetTools(ctx)
+		if err != nil {
+			fmt.Printf("⚠️ Failed to get MCP tools: %v\n", err)
+		} else {
+			availableTools = append(availableTools, mcpTools...)
+		}
+	}
+
 	var finalResponse strings.Builder
 
 	for i := 0; i < 10; i++ { // Limit to 10 iterations to prevent infinite loops
@@ -269,7 +289,28 @@ func (a *Agent) continueSkillWithTools(ctx context.Context, userPrompt string, s
 				}
 			}
 
-			toolOutput, err := a.executeToolCall(tc, scriptMap, skill.Path)
+			var toolOutput string
+			var err error
+
+			// Check if it is an MCP tool
+			if a.mcpClient != nil && strings.Contains(tc.Function.Name, "__") {
+				var args map[string]interface{}
+				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
+					toolOutput = fmt.Sprintf("Error unmarshalling arguments: %v", err)
+					err = fmt.Errorf("failed to unmarshal arguments: %w", err)
+				} else {
+					var result interface{}
+					result, err = a.mcpClient.CallTool(ctx, tc.Function.Name, args)
+					if err == nil {
+						// Convert result to string/JSON
+						resBytes, _ := json.Marshal(result)
+						toolOutput = string(resBytes)
+					}
+				}
+			} else {
+				toolOutput, err = a.executeToolCall(tc, scriptMap, skill.Path)
+			}
+
 			if err != nil {
 				fmt.Printf("❌ Tool call failed: %v\n", err)
 				a.messages = append(a.messages, openai.ChatCompletionMessage{
@@ -404,6 +445,10 @@ func (a *Agent) executeToolCall(toolCall openai.ToolCall, scriptMap map[string]s
 	}
 
 	if err != nil {
+		fmt.Printf("❌ Tool execution failed for %s: %v\n", toolCall.Function.Name, err)
+		if toolCall.Function.Arguments != "" {
+			fmt.Printf("Raw Arguments: %s\n", toolCall.Function.Arguments)
+		}
 		return "", fmt.Errorf("tool execution failed for %s: %w", toolCall.Function.Name, err)
 	}
 	return toolOutput, nil
