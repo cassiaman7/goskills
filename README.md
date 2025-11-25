@@ -13,7 +13,7 @@ A Go package to parse Claude Skill packages from a directory structure. This par
 - Packaged as a reusable Go module.
 - Includes command-line interfaces for managing and inspecting skills.
 
-## Installation
+## Installation 
 
 To use this package in your project, you can use `go get`:
 

@@ -219,5 +219,5 @@ allowed-tools: []
 func TestParseSkillPackages(t *testing.T) {
 	skills, err := ParseSkillPackages("./examples/skills")
 	require.NoError(t, err)
-	require.Len(t, skills, 16)
+	require.Len(t, skills, 17)
 }
