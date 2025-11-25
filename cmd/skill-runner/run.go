@@ -61,21 +61,21 @@ You can specify a custom model and API base URL using flags.`,
 		var mcpClient *goskills_mcp.Client
 		var mcpConfigPath string
 
-		if mcpConfig != "" {
-			mcpConfigPath = mcpConfig
+		if cfg.McpConfig != "" {
+			mcpConfigPath = cfg.McpConfig
 		} else {
 			// Check local mcp.json
 			if _, err := os.Stat("mcp.json"); err == nil {
 				mcpConfigPath = "mcp.json"
 			} else {
-				// Check ~/.claude.json
-				homeDir, err := os.UserHomeDir()
-				if err == nil {
-					path := fmt.Sprintf("%s/.claude.json", homeDir)
-					if _, err := os.Stat(path); err == nil {
-						mcpConfigPath = path
-					}
-				}
+				// // Check ~/.claude.json
+				// homeDir, err := os.UserHomeDir()
+				// if err == nil {
+				// 	path := fmt.Sprintf("%s/.claude.json", homeDir)
+				// 	if _, err := os.Stat(path); err == nil {
+				// 		mcpConfigPath = path
+				// 	}
+				// }
 			}
 		}
 
@@ -118,10 +118,7 @@ You can specify a custom model and API base URL using flags.`,
 	},
 }
 
-var mcpConfig string
-
 func init() {
 	rootCmd.AddCommand(runCmd)
 	config.SetupFlags(runCmd)
-	runCmd.Flags().StringVar(&mcpConfig, "mcp-config", "", "Path to MCP configuration file")
 }

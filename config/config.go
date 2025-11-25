@@ -18,6 +18,7 @@ type Config struct {
 	AllowedScripts   []string
 	Verbose          bool
 	Loop             bool
+	McpConfig        string
 }
 
 // LoadConfig loads configuration from flags and environment variables
@@ -55,6 +56,10 @@ func LoadConfig(cmd *cobra.Command) (*Config, error) {
 		return nil, err
 	}
 	cfg.AllowedScripts, err = cmd.Flags().GetStringSlice("allow-scripts")
+	if err != nil {
+		return nil, err
+	}
+	cfg.McpConfig, err = cmd.Flags().GetString("mcp-config")
 	if err != nil {
 		return nil, err
 	}
@@ -98,4 +103,5 @@ func SetupFlags(cmd *cobra.Command) {
 	cmd.Flags().StringSlice("allow-scripts", nil, "Comma-separated list of allowed script names (e.g. 'run_myscript_py')")
 	cmd.Flags().BoolP("verbose", "v", false, "Enable verbose output")
 	cmd.Flags().BoolP("loop", "l", false, "Enable interactive loop mode")
+	cmd.Flags().String("mcp-config", "", "Path to MCP configuration file")
 }
