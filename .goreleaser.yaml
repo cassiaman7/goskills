@@ -14,6 +14,19 @@ builds:
       - amd64
       - arm64
 
+  - id: agent-cli
+    binary: agent-cli
+    main: ./cmd/agent-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
 archives:
   - format: tar.gz
     # Name your archive with a sensible pattern, including the project name, OS, and architecture.
