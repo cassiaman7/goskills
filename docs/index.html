@@ -8,12 +8,11 @@
     <meta name="description"
         content="A powerful Go package to parse and run Claude Skill packages. Integrate LLM capabilities into your Go applications with ease.">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code&display=swap"
+    <link rel="preconnect" href="https://fonts.gstatic.cn">
+    <link href="https://fonts.googleapis.cn/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code&display=swap"
         rel="stylesheet">
     <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/7.0.1/css/all.min.css">
 </head>
 
 <body>
@@ -23,6 +22,9 @@
                 <i class="fa-solid fa-cube"></i>
                 <span>GoSkills</span>
             </a>
+            <div class="menu-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </div>
             <nav class="nav-links">
                 <a href="index.html" class="active">Home</a>
                 <a href="documentation.html" class="active">Documentation</a>
@@ -48,7 +50,8 @@
 
         <div style="max-width: 800px; margin: 0 auto 60px; padding: 0 20px;">
             <div class="feature-card" style="text-align: left;">
-                <pre style="margin: 0;"><code>brew tap smallnest/goskills
+                <pre style="margin: 0;"><code>brew untap smallnest/goskills
+brew install smallnest/goskills/goskills
 
 export OPENAI_API_KEY=your_open_ai_key
 export OPENAI_API_BASE=https://api.openai.com/v1

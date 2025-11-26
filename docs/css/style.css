@@ -89,6 +89,13 @@ header {
     color: #fff;
 }
 
+.menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #fff;
+}
+
 /* Hero Section */
 .hero {
     padding: 160px 20px 100px;
@@ -346,9 +353,26 @@ footer {
         font-size: 2.5rem;
     }
 
+    .menu-toggle {
+        display: block;
+    }
+
     .nav-links {
         display: none;
-        /* Simple hide for now, can add toggle later */
+        position: absolute;
+        top: var(--header-height);
+        left: 0;
+        width: 100%;
+        background-color: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(10px);
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+
+    .nav-links.active {
+        display: flex;
     }
 
     .docs-container {
