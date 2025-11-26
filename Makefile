@@ -1,4 +1,4 @@
-.PHONY: all build clean
+.PHONY: all build clean agent cli runner test
 
 # Binary names
 BINARY_CLI=goskills-cli

@@ -29,7 +29,7 @@ func (h *CLIInteractionHandler) ReviewPlan(plan *agent.Plan) (string, error) {
 	}
 	fmt.Println()
 
-	fmt.Print("Do you want to approve this plan? (y/N/modification): ")
+	fmt.Print("\033[1;33mDo you want to approve this plan? (y/N/modification):\033[0m ")
 	if !h.scanner.Scan() {
 		return "", h.scanner.Err()
 	}
@@ -53,9 +53,10 @@ func (h *CLIInteractionHandler) ReviewSearchResults(results string) (bool, error
 	if len(preview) > 500 {
 		preview = preview[:500] + "..."
 	}
-	fmt.Printf("\n🔎 Search Results Preview:\n%s\n\n", preview)
+	count := strings.Count(results, "URL: ")
+	fmt.Printf("\n🔎 Search Results Preview (%d results):\n%s\n\n", count, preview)
 
-	fmt.Print("Do you want to search for more results (up to 100)? (y/N): ")
+	fmt.Print("\033[1;33mDo you want to search for more results (up to 100)? (y/N):\033[0m ")
 	if !h.scanner.Scan() {
 		return false, h.scanner.Err()
 	}
@@ -112,35 +113,37 @@ Special commands:
 
 		fmt.Print(logo)
 		fmt.Println("\n")
-		fmt.Println("GoSkills Agent CLI - Interactive Chat")
-		fmt.Println("Type /help for available commands, /exit to quit")
+		fmt.Println("\033[1;36mGoSkills Agent CLI - Interactive Chat\033[0m")
+		fmt.Println("Type \033[1;33m\\help\033[0m for available commands, \033[1;33m\\exit\033[0m to quit")
 		fmt.Println(strings.Repeat("-", 60))
 
 		for {
-			fmt.Print("\n💬 You: ")
-			if !scanner.Scan() {
+			// Use TUI for input
+			input, err := GetInput("> ")
+			if err != nil {
+				fmt.Printf("Error reading input: %v\n", err)
 				break
 			}
 
-			input := strings.TrimSpace(scanner.Text())
+			input = strings.TrimSpace(input)
 			if input == "" {
 				continue
 			}
 
 			// Handle special commands
 			switch input {
-			case "/help":
+			case "\\help":
 				fmt.Println("\n📚 Available Commands:")
-				fmt.Println("  /help   - Show this help message")
-				fmt.Println("  /clear  - Clear conversation history")
-				fmt.Println("  /exit   - Exit the chat session")
-				fmt.Println("  /quit   - Exit the chat session")
+				fmt.Println("  \\help   - Show this help message")
+				fmt.Println("  \\clear  - Clear conversation history")
+				fmt.Println("  \\exit   - Exit the chat session")
+				fmt.Println("  \\quit   - Exit the chat session")
 				continue
-			case "/clear":
+			case "\\clear":
 				planningAgent.ClearHistory()
 				fmt.Println("✨ Conversation history cleared")
 				continue
-			case "/exit", "/quit":
+			case "\\exit", "\\quit":
 				fmt.Println("👋 Goodbye!")
 				return nil
 			}
@@ -179,7 +182,7 @@ Special commands:
 			// Add assistant response to history
 			planningAgent.AddAssistantMessage(finalOutput)
 
-			fmt.Println("\n🤖 Agent:")
+			fmt.Println("\n📄 Final Report:")
 			if cfg.Verbose {
 				fmt.Println(strings.Repeat("-", 60))
 			}

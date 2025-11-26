@@ -3,6 +3,7 @@ package agent
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	openai "github.com/sashabaranov/go-openai"
@@ -69,11 +70,18 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 			wantMore, err := s.interactionHandler.ReviewSearchResults(searchResult)
 			if err == nil && wantMore {
 				if s.verbose {
-					fmt.Println("  🔄 User requested more results. Searching up to 100 results...")
+					fmt.Println("  🔄 User requested more results. Searching up to 50 results...")
 				}
-				moreResults, err := tool.TavilySearchWithLimit(query, 100)
+				moreResults, err := tool.TavilySearchWithLimit(query, 50)
 				if err == nil {
 					searchResult = moreResults
+					if s.verbose {
+						preview := moreResults
+						if len(preview) > 500 {
+							preview = preview[:500] + "..."
+						}
+						fmt.Printf("  🔎 New Results Preview:\n%s\n", preview)
+					}
 				} else {
 					if s.verbose {
 						fmt.Printf("  ⚠️ Failed to get more results: %v. Keeping original results.\n", err)
@@ -90,7 +98,7 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	}
 
 	if s.verbose {
-		fmt.Printf("  ✓ Retrieved information (%d bytes)\n", len(searchResult))
+		fmt.Printf("\n  ✓ Retrieved information (%d bytes)\n", len(searchResult))
 	}
 
 	return Result{
@@ -283,13 +291,28 @@ func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	if !ok {
 		// Try to get from context (passed from previous task)
 		if ctxContent, ok := task.Parameters["context"].(string); ok {
-			// The context might contain multiple outputs, we want the last one which is likely the report
-			// But for now let's just use the whole context or try to parse it.
-			// Given our context passing logic: "Output from REPORT task:\n...\n\n"
-			// We might want to just render the whole thing or the last part.
-			// Let's assume the user wants to render the accumulated context or specific content.
-			// If context is present, use it.
-			content = ctxContent
+			// Extract the content from the REPORT task if present
+			if idx := strings.LastIndex(ctxContent, "Output from REPORT task:\n"); idx != -1 {
+				content = ctxContent[idx+len("Output from REPORT task:\n"):]
+				// Remove any trailing "Output from ..." blocks if they exist (unlikely if REPORT is last before RENDER)
+				if nextIdx := strings.Index(content, "Output from "); nextIdx != -1 {
+					content = content[:nextIdx]
+				}
+			} else {
+				// If no REPORT output found, try to use the last task's output
+				if idx := strings.LastIndex(ctxContent, "Output from "); idx != -1 {
+					// Find the newline after "Output from ... task:"
+					if newlineIdx := strings.Index(ctxContent[idx:], "\n"); newlineIdx != -1 {
+						content = ctxContent[idx+newlineIdx+1:]
+					} else {
+						content = ctxContent[idx:]
+					}
+				} else {
+					// Fallback to whole context
+					content = ctxContent
+				}
+			}
+			content = strings.TrimSpace(content)
 		} else {
 			content = task.Description
 		}
