@@ -10,9 +10,9 @@ BUILD_DIR=.
 
 all: build
 
-build: cli runner agent-cli
+build: cli runner agent
 
-agent-cli:
+agent:
 	go build -o $(BUILD_DIR)/$(BINARY_AGENT) ./cmd/agent-cli
 
 cli:

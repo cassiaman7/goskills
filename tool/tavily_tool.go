@@ -13,7 +13,7 @@ import (
 
 // TavilySearch performs a web search using the Tavily API.
 func TavilySearch(query string) (string, error) {
-	return TavilySearchWithLimit(query, 5)
+	return TavilySearchWithLimit(query, 20)
 }
 
 // TavilySearchWithLimit performs a web search using the Tavily API with a custom result limit.

@@ -281,7 +281,18 @@ func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	// Get content from parameters or description
 	content, ok := task.Parameters["content"].(string)
 	if !ok {
-		content = task.Description
+		// Try to get from context (passed from previous task)
+		if ctxContent, ok := task.Parameters["context"].(string); ok {
+			// The context might contain multiple outputs, we want the last one which is likely the report
+			// But for now let's just use the whole context or try to parse it.
+			// Given our context passing logic: "Output from REPORT task:\n...\n\n"
+			// We might want to just render the whole thing or the last part.
+			// Let's assume the user wants to render the accumulated context or specific content.
+			// If context is present, use it.
+			content = ctxContent
+		} else {
+			content = task.Description
+		}
 	}
 
 	if r.verbose {

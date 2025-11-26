@@ -53,6 +53,7 @@ func NewPlanningAgent(config AgentConfig, interactionHandler InteractionHandler)
 	agent.subagents[TaskTypeSearch] = NewSearchSubagent(client, config.Model, config.Verbose, interactionHandler)
 	agent.subagents[TaskTypeAnalyze] = NewAnalysisSubagent(client, config.Model, config.Verbose)
 	agent.subagents[TaskTypeReport] = NewReportSubagent(client, config.Model, config.Verbose)
+	agent.subagents[TaskTypeRender] = NewRenderSubagent(config.Verbose)
 
 	return agent, nil
 }
@@ -64,10 +65,11 @@ You have access to three types of subagents:
 - SEARCH: Performs web searches to gather information
 - ANALYZE: Analyzes and synthesizes gathered information
 - REPORT: Generates formatted reports from analyzed data
+- RENDER: Renders markdown content to terminal-friendly format
 
 For the given user request, create a plan with a sequence of tasks.
 Each task should have:
-- type: one of SEARCH, ANALYZE, or REPORT
+- type: one of SEARCH, ANALYZE, REPORT, or RENDER
 - description: what the subagent should do
 - parameters: optional parameters for the task (e.g., {"query": "search term"})
 
@@ -77,7 +79,8 @@ Return ONLY a valid JSON object with this structure:
   "tasks": [
     {"type": "SEARCH", "description": "...", "parameters": {"query": "..."}},
     {"type": "ANALYZE", "description": "..."},
-    {"type": "REPORT", "description": "..."}
+    {"type": "REPORT", "description": "..."},
+    {"type": "RENDER", "description": "Render the report"}
   ]
 }
 
@@ -190,9 +193,24 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 
 	results := make([]Result, 0, len(plan.Tasks))
 
+	var contextData string
+
 	for i, task := range plan.Tasks {
 		if a.config.Verbose {
 			fmt.Printf("📍 Step %d/%d: [%s] %s\n", i+1, len(plan.Tasks), task.Type, task.Description)
+		}
+
+		// Inject context from previous tasks
+		if contextData != "" {
+			if task.Parameters == nil {
+				task.Parameters = make(map[string]interface{})
+			}
+			// If context already exists in parameters, append to it
+			if existingContext, ok := task.Parameters["context"].(string); ok {
+				task.Parameters["context"] = existingContext + "\n\n" + contextData
+			} else {
+				task.Parameters["context"] = contextData
+			}
 		}
 
 		subagent, ok := a.subagents[task.Type]
@@ -207,10 +225,15 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 
 		results = append(results, result)
 
-		if a.config.Verbose {
-			if result.Success {
+		if result.Success {
+			// Accumulate output for next tasks
+			contextData += fmt.Sprintf("Output from %s task:\n%s\n\n", task.Type, result.Output)
+
+			if a.config.Verbose {
 				fmt.Printf("  ✓ Completed\n\n")
-			} else {
+			}
+		} else {
+			if a.config.Verbose {
 				fmt.Printf("  ✗ Failed: %s\n\n", result.Error)
 			}
 		}
@@ -233,10 +256,10 @@ func (a *PlanningAgent) Run(ctx context.Context, userRequest string) (string, er
 		return "", err
 	}
 
-	// Extract the final output (typically from the REPORT task)
+	// Extract the final output (typically from the RENDER or REPORT task)
 	var finalOutput string
 	for i := len(results) - 1; i >= 0; i-- {
-		if results[i].TaskType == TaskTypeReport && results[i].Success {
+		if (results[i].TaskType == TaskTypeRender || results[i].TaskType == TaskTypeReport) && results[i].Success {
 			finalOutput = results[i].Output
 			break
 		}
