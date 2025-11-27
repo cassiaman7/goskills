@@ -194,7 +194,7 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 
 	results := make([]Result, 0, len(plan.Tasks))
 
-	var contextData string
+	var contextData []string
 
 	for i, task := range plan.Tasks {
 		if a.config.Verbose {
@@ -202,13 +202,13 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 		}
 
 		// Inject context from previous tasks
-		if contextData != "" {
+		if len(contextData) > 0 {
 			if task.Parameters == nil {
 				task.Parameters = make(map[string]interface{})
 			}
 			// If context already exists in parameters, append to it
-			if existingContext, ok := task.Parameters["context"].(string); ok {
-				task.Parameters["context"] = existingContext + "\n\n" + contextData
+			if existingContext, ok := task.Parameters["context"].([]string); ok {
+				task.Parameters["context"] = append(existingContext, contextData...)
 			} else {
 				task.Parameters["context"] = contextData
 			}
@@ -228,7 +228,7 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 
 		if result.Success {
 			// Accumulate output for next tasks
-			contextData += fmt.Sprintf("Output from %s task:\n%s\n\n", task.Type, result.Output)
+			contextData = append(contextData, fmt.Sprintf("Output from %s task:\n%s", task.Type, result.Output))
 
 			if a.config.Verbose {
 				fmt.Printf("  ✓ Completed\n\n")

@@ -139,11 +139,11 @@ func (a *AnalysisSubagent) Execute(ctx context.Context, task Task) (Result, erro
 	}
 
 	// Get context from parameters if available
-	context_data, hasContext := task.Parameters["context"].(string)
+	contextData, hasContext := task.Parameters["context"].([]string)
 
 	var prompt string
-	if hasContext {
-		prompt = fmt.Sprintf("Analyze the following information and %s:\n\n%s", task.Description, context_data)
+	if hasContext && len(contextData) > 0 {
+		prompt = fmt.Sprintf("Analyze the following information and %s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
 	} else {
 		prompt = task.Description
 	}
@@ -215,11 +215,11 @@ func (r *ReportSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	}
 
 	// Get context from parameters if available
-	context_data, hasContext := task.Parameters["context"].(string)
+	contextData, hasContext := task.Parameters["context"].([]string)
 
 	var prompt string
-	if hasContext {
-		prompt = fmt.Sprintf("Based on the following information, %s:\n\n%s", task.Description, context_data)
+	if hasContext && len(contextData) > 0 {
+		prompt = fmt.Sprintf("Based on the following information, %s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
 	} else {
 		prompt = task.Description
 	}
@@ -290,26 +290,29 @@ func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	content, ok := task.Parameters["content"].(string)
 	if !ok {
 		// Try to get from context (passed from previous task)
-		if ctxContent, ok := task.Parameters["context"].(string); ok {
-			// Extract the content from the REPORT task if present
-			if idx := strings.LastIndex(ctxContent, "Output from REPORT task:\n"); idx != -1 {
-				content = ctxContent[idx+len("Output from REPORT task:\n"):]
-				// Remove any trailing "Output from ..." blocks if they exist (unlikely if REPORT is last before RENDER)
-				if nextIdx := strings.Index(content, "Output from "); nextIdx != -1 {
-					content = content[:nextIdx]
-				}
-			} else {
-				// If no REPORT output found, try to use the last task's output
-				if idx := strings.LastIndex(ctxContent, "Output from "); idx != -1 {
-					// Find the newline after "Output from ... task:"
-					if newlineIdx := strings.Index(ctxContent[idx:], "\n"); newlineIdx != -1 {
-						content = ctxContent[idx+newlineIdx+1:]
-					} else {
-						content = ctxContent[idx:]
+		if ctxContent, ok := task.Parameters["context"].([]string); ok && len(ctxContent) > 0 {
+			// Try to find the output from the REPORT task
+			var foundReport bool
+			for i := len(ctxContent) - 1; i >= 0; i-- {
+				if strings.Contains(ctxContent[i], "Output from REPORT task:") {
+					content = ctxContent[i]
+					// Extract the content after the header
+					if idx := strings.Index(content, "\n"); idx != -1 {
+						content = content[idx+1:]
 					}
-				} else {
-					// Fallback to whole context
-					content = ctxContent
+					foundReport = true
+					break
+				}
+			}
+
+			if !foundReport {
+				// If no REPORT output found, use the last task's output
+				content = ctxContent[len(ctxContent)-1]
+				// Extract the content after the header if present
+				if idx := strings.Index(content, "Output from "); idx != -1 {
+					if newlineIdx := strings.Index(content[idx:], "\n"); newlineIdx != -1 {
+						content = content[idx+newlineIdx+1:]
+					}
 				}
 			}
 			content = strings.TrimSpace(content)
