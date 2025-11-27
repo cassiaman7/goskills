@@ -10,6 +10,7 @@ const (
 	TaskTypeAnalyze TaskType = "ANALYZE"
 	TaskTypeReport  TaskType = "REPORT"
 	TaskTypeRender  TaskType = "RENDER"
+	TaskTypePodcast TaskType = "PODCAST"
 )
 
 // Task represents a subtask to be executed by a subagent.
@@ -49,4 +50,8 @@ type InteractionHandler interface {
 	// ReviewSearchResults asks the user if they want to search for more information.
 	// Returns true if more results are requested.
 	ReviewSearchResults(results string) (bool, error)
+
+	// ConfirmPodcastGeneration asks the user if they want to generate a podcast from the report.
+	// Returns true if confirmed.
+	ConfirmPodcastGeneration(report string) (bool, error)
 }

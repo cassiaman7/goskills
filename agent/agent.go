@@ -54,6 +54,7 @@ func NewPlanningAgent(config AgentConfig, interactionHandler InteractionHandler)
 	agent.subagents[TaskTypeAnalyze] = NewAnalysisSubagent(client, config.Model, config.Verbose)
 	agent.subagents[TaskTypeReport] = NewReportSubagent(client, config.Model, config.Verbose)
 	agent.subagents[TaskTypeRender] = NewRenderSubagent(config.Verbose)
+	agent.subagents[TaskTypePodcast] = NewPodcastSubagent(client, config.Model, config.Verbose)
 
 	return agent, nil
 }

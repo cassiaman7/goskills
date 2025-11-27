@@ -65,6 +65,16 @@ func (h *CLIInteractionHandler) ReviewSearchResults(results string) (bool, error
 	return strings.EqualFold(input, "y") || strings.EqualFold(input, "yes"), nil
 }
 
+func (h *CLIInteractionHandler) ConfirmPodcastGeneration(report string) (bool, error) {
+	fmt.Print("\n\033[1;33mDo you want to generate a podcast from this report? (y/N):\033[0m ")
+	if !h.scanner.Scan() {
+		return false, h.scanner.Err()
+	}
+	input := strings.TrimSpace(h.scanner.Text())
+
+	return strings.EqualFold(input, "y") || strings.EqualFold(input, "yes"), nil
+}
+
 var rootCmd = &cobra.Command{
 	Use:   "agent-cli",
 	Short: "A deep agents CLI tool with planning and specialized subagents.",
@@ -118,6 +128,8 @@ Special commands:
 		fmt.Println("Type \033[1;33m\\help\033[0m for available commands, \033[1;33m\\exit\033[0m to quit")
 		fmt.Println(strings.Repeat("-", 60))
 
+		var lastReport string
+
 		for {
 			// Use TUI for input
 			input, err := GetInput("> ")
@@ -135,14 +147,48 @@ Special commands:
 			switch input {
 			case "\\help":
 				fmt.Println("\n📚 Available Commands:")
-				fmt.Println("  \\help   - Show this help message")
-				fmt.Println("  \\clear  - Clear conversation history")
-				fmt.Println("  \\exit   - Exit the chat session")
-				fmt.Println("  \\quit   - Exit the chat session")
+				fmt.Println("  \\help    - Show this help message")
+				fmt.Println("  \\clear   - Clear conversation history")
+				fmt.Println("  \\podcast - Generate a podcast script from the last report")
+				fmt.Println("  \\exit    - Exit the chat session")
+				fmt.Println("  \\quit    - Exit the chat session")
 				continue
 			case "\\clear":
 				planningAgent.ClearHistory()
 				fmt.Println("✨ Conversation history cleared")
+				continue
+			case "\\podcast":
+				if lastReport == "" {
+					fmt.Println("❌ No report available to convert to podcast. Please generate a report first.")
+					continue
+				}
+				fmt.Println("🎙️ Generating podcast script...")
+
+				// Create a plan for podcast generation
+				podcastPlan := &agent.Plan{
+					Description: "Generate podcast script",
+					Tasks: []agent.Task{
+						{
+							Type:        agent.TaskTypePodcast,
+							Description: "Generate podcast script from the report",
+							Parameters: map[string]interface{}{
+								"content": lastReport,
+							},
+						},
+					},
+				}
+
+				results, err := planningAgent.Execute(ctx, podcastPlan)
+				if err != nil {
+					fmt.Printf("\n❌ Error: %v\n", err)
+					continue
+				}
+
+				for _, result := range results {
+					if result.Success {
+						fmt.Println("\n" + result.Output)
+					}
+				}
 				continue
 			case "\\exit", "\\quit":
 				fmt.Println("👋 Goodbye!")
@@ -180,6 +226,11 @@ Special commands:
 				}
 			}
 
+			// Update lastReport if we have a valid output
+			if finalOutput != "" {
+				lastReport = finalOutput
+			}
+
 			// Add assistant response to history
 			planningAgent.AddAssistantMessage(finalOutput)
 
@@ -188,8 +239,39 @@ Special commands:
 				fmt.Println(strings.Repeat("-", 60))
 			}
 			fmt.Println(finalOutput)
-		}
 
+			// Ask for podcast generation
+			confirm, err := interactionHandler.ConfirmPodcastGeneration(finalOutput)
+			if err == nil && confirm {
+				fmt.Println("🎙️ Generating podcast script...")
+
+				// Create a plan for podcast generation
+				podcastPlan := &agent.Plan{
+					Description: "Generate podcast script",
+					Tasks: []agent.Task{
+						{
+							Type:        agent.TaskTypePodcast,
+							Description: "Generate podcast script from the report",
+							Parameters: map[string]interface{}{
+								"content": finalOutput,
+							},
+						},
+					},
+				}
+
+				results, err := planningAgent.Execute(ctx, podcastPlan)
+				if err != nil {
+					fmt.Printf("\n❌ Error: %v\n", err)
+					continue
+				}
+
+				for _, result := range results {
+					if result.Success {
+						fmt.Println("\n" + result.Output)
+					}
+				}
+			}
+		}
 		if err := scanner.Err(); err != nil {
 			return fmt.Errorf("error reading input: %w", err)
 		}
