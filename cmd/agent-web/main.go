@@ -122,6 +122,7 @@ func runServer(cmd *cobra.Command, args []string) {
 	}
 
 	// Serve static files
+	// Use fs.Sub to get the "ui" subdirectory from the embedded filesystem
 	uiFS, err := fs.Sub(uiAssets, "ui")
 	if err != nil {
 		log.Fatal(err)
