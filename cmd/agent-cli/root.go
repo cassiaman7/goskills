@@ -68,11 +68,12 @@ func (h *CLIInteractionHandler) ReviewSearchResults(results string) (bool, error
 var rootCmd = &cobra.Command{
 	Use:   "agent-cli",
 	Short: "A deep agents CLI tool with planning and specialized subagents.",
-	Long: `agent-cli is a command-line interface that implements a deep agents architecture.
+	Long: `agent-cli is a command-line interface that implements a deep research agent architecture.
 It uses a planning agent to decompose tasks and coordinate specialized subagents for:
 - Web search (DuckDuckGo, Wikipedia)
 - Information analysis
 - Report generation
+- Render markdown to content in terminal
 
 In interactive mode, you can have multi-turn conversations with the agent.
 The agent maintains conversation history across messages.
@@ -112,7 +113,7 @@ Special commands:
 			"\033[38;2;255;8;68m╱\033[38;2;255;12;70m╰\033[38;2;255;15;72m━\033[38;2;255;19;74m━\033[38;2;255;23;75m━\033[38;2;255;26;77m╯\033[38;2;255;30;79m╱\033[38;2;255;34;81m╰\033[38;2;255;37;83m━\033[38;2;255;41;85m━\033[38;2;255;45;86m━\033[38;2;255;48;88m╯\033[38;2;255;52;90m╱\033[38;2;255;56;92m╰\033[38;2;255;59;94m━\033[38;2;255;63;96m━\033[38;2;255;67;98m━\033[38;2;255;70;99m╯\033[38;2;255;74;101m╱\033[38;2;255;78;103m╰\033[38;2;255;81;105m╯\033[38;2;255;85;107m╰\033[38;2;255;89;109m━\033[38;2;255;93;111m╯\033[38;2;255;96;112m╱\033[38;2;255;100;114m╰\033[38;2;255;104;116m━\033[38;2;255;107;118m━\033[38;2;255;111;120m╯\033[38;2;255;115;122m╱\033[38;2;255;118;123m╰\033[38;2;255;122;125m━\033[38;2;255;126;127m━\033[38;2;255;129;129m━\033[38;2;255;133;131m╯\033[38;2;255;137;133m╱\033[38;2;255;140;135m╰\033[38;2;255;144;136m━\033[38;2;255;148;138m━\033[38;2;255;151;140m━\033[38;2;255;155;142m╯\033[38;2;255;159;144m╱\033[38;2;255;162;146m╰\033[38;2;255;166;147m━\033[38;2;255;170;149m━\033[38;2;255;173;151m━\033[38;2;255;177;153m╯\033[39m"
 
 		fmt.Print(logo)
-		fmt.Println("\n")
+		fmt.Print("\n\n")
 		fmt.Println("\033[1;36mGoSkills Agent CLI - Interactive Chat\033[0m")
 		fmt.Println("Type \033[1;33m\\help\033[0m for available commands, \033[1;33m\\exit\033[0m to quit")
 		fmt.Println(strings.Repeat("-", 60))

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepResearch - GoSkills</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.gstatic.cn">
+    <link href="https://fonts.googleapis.cn/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        .docs-content img {
+            max-width: 90%;
+            display: block;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fa-solid fa-cube"></i>
+                <span>GoSkills</span>
+            </a>
+            <div class="menu-toggle">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+            <nav class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="documentation.html">Documentation</a>
+                <a href="usage.html">Integration</a>
+                <a href="agent.html" class="active">DeepResearch</a>
+                <a href="examples.html">Examples</a>
+                <a href="https://github.com/smallnest/goskills" target="_blank"><i class="fa-brands fa-github"></i>
+                    GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="docs-container">
+        <aside class="docs-sidebar">
+            <ul>
+                <li><a href="#background" class="active">Background</a></li>
+                <li><a href="#compilation">Compilation</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#implementation">Implementation</a></li>
+            </ul>
+        </aside>
+
+        <main class="docs-content">
+            <h1>GoSkills Agent: Pure Go Deep Research Agent</h1>
+
+            <p><strong>Zero framework dependencies, extremely lightweight, making the power of Deep Research
+                    accessible!</strong></p>
+
+            <p>Project code located at: <a
+                    href="https://github.com/smallnest/goskills/">https://github.com/smallnest/goskills/</a></p>
+
+            <p>Have you ever been confused by complex Agent frameworks (such as LangChain, AutoGen)? Do you long for a
+                powerful deep research assistant like ByteDance's <a href="https://github.com/bytedance/deer-flow">Deer
+                    Flow</a>, but suffer from the lack of a suitable Go language implementation?</p>
+
+            <p>Today, we proudly introduce <strong>GoSkills Agent</strong> — a Deep Research agent built entirely using
+                the Go language native standard library and lightweight tools! It does not rely on any bloated
+                third-party Agent frameworks, demonstrating the core logic of Agentic AI with the purest code.</p>
+
+            <p>It is not just a tool, but a return to and exploration of the essence of Agents. Get ready, let's uncover
+                its mystery together!</p>
+
+            <h2 id="background">0. Background and Features</h2>
+
+            <p>In the AI 2.0 era, <strong>Deep Research</strong> has become the jewel in the crown of the Agent field.
+                It requires AI not just to answer questions, but to act like a human researcher: <strong>Deconstruct
+                    Goal -> Collect Information -> Read and Analyze -> Comprehensive Report</strong>.</p>
+
+            <p>Although there are many implementations in the Python ecosystem, in the Go language world, we have always
+                longed for a high-performance, easy-to-deploy, and logically clear Deep Research solution.</p>
+
+            <p><strong>GoSkills Agent</strong> was born. It has the following core capabilities:</p>
+            <ul>
+                <li><strong>Autonomous Planning</strong>: Automatically decomposes user questions into subtasks such as
+                    search, analysis, and report writing.</li>
+                <li><strong>Deep Search</strong>: Integrates Tavily search tool to obtain the latest information on the
+                    Internet in real time.</li>
+                <li><strong>Intelligent Analysis</strong>: Denoises, refines, and deeply thinks about massive search
+                    results.</li>
+                <li><strong>Professional Reporting</strong>: Finally generates a structured and detailed Markdown
+                    research report.</li>
+                <li><strong>Native TUI (Terminal UI)</strong>: Provides a geek-style interactive interface similar to
+                    Gemini CLI, with a silky smooth experience.</li>
+            </ul>
+
+            <h2 id="compilation">1. Compilation</h2>
+
+            <p>The compilation process of GoSkills Agent is extremely simple, thanks to the powerful toolchain of the Go
+                language.</p>
+
+            <p>Ensure you have installed the Go 1.25+ environment.</p>
+
+            <pre><code class="language-bash"># Clone the project
+git clone https://github.com/smallnest/goskills.git
+cd goskills
+
+# Compile with one click using Makefile
+make agent
+
+# Or use go build directly
+go build -o agent-cli ./cmd/agent-cli</code></pre>
+
+            <p>After compilation is complete, you will see the <code>agent-cli</code> executable file in the current
+                directory.</p>
+
+            <h2 id="installation">2. Installation</h2>
+
+            <p>Since the Go compilation product is a statically linked binary file, you do not need to install any
+                Python dependencies or configure complex virtual environments.</p>
+
+            <p>Just move <code>agent-cli</code> to your system PATH:</p>
+
+            <pre><code class="language-bash">mv agent-cli /usr/local/bin/</code></pre>
+
+            <p>Now, you can wake up your deep research assistant via the <code>agent-cli</code> command anywhere!</p>
+
+            <h2 id="usage">3. Usage</h2>
+
+            <p>Start the Agent, and you will see a beautifully designed TUI interface:</p>
+
+            <pre><code class="language-bash">agent-cli</code></pre>
+
+            <p><strong>Interaction Instructions:</strong></p>
+            <ul>
+                <li>Directly input your research topic, for example: "Analyze the latest breakthroughs in quantum
+                    computing in 2024"</li>
+                <li><code>\help</code>: View help information</li>
+                <li><code>\clear</code>: Clear context history</li>
+                <li><code>\exit</code> or <code>\quit</code>: Exit the program</li>
+            </ul>
+
+            <p><strong>Example:</strong></p>
+
+            <h3>3.1 Start agent-cli</h3>
+            <p>First set a few environment variables:</p>
+            <pre><code class="language-bash"># Here I use Baidu Intelligent Cloud's deepseek service, you can modify it to your service information
+export OPENAI_API_KEY=YOUR_KEY
+export OPENAI_API_BASE=https://qianfan.baidubce.com/v2
+export OPENAI_MODEL=deepseek-v3
+
+# Apply for a key at https://www.tavily.com/, there is a free quota. Need to use it to search for web resources
+export TAVILY_API_KEY=tvly-dev-xxxxxxxxxxxxxxxx</code></pre>
+
+            <p>Then start the program, it is recommended to add <code>-v</code> to display debugging information, which
+                is convenient for you to observe the agent processing flow:</p>
+            <pre><code class="language-bash">agent-cli -v</code></pre>
+
+            <ul>
+                <li>Use the <code>\exit</code> command to exit the program</li>
+                <li>Use the <code>\help</code> command or <code>\quit</code> command to seek help</li>
+                <li>Use the <code>\clear</code> command to clear context history</li>
+            </ul>
+
+            <h3>3.2 Input request, agent starts planning</h3>
+            <p><img src="images/agent_plan.png" alt="Agent Plan"></p>
+
+            <p>In this example, we ask the agent to output an analysis report for "Please explain quantum computing
+                technology in simple terms. Please use Chinese for the report."</p>
+
+            <h3>3.3 Search and Analysis</h3>
+            <p><img src="images/agent_search.png" alt="Agent Search"></p>
+            <p>Then, according to the plan, search for materials, and then give the search results to the LLM for
+                analysis.</p>
+
+            <h3>3.4 Generate Report</h3>
+            <p><img src="images/agent_report.png" alt="Agent Report"></p>
+            <p>Provide the analysis results to the LLM and generate an analysis report (markdown format) as required.
+            </p>
+
+            <h3>3.5 Render and Output Report</h3>
+            <p><img src="images/agent_output.png" alt="Agent Output"></p>
+            <p>Because the generated report is in markdown format, it does not look good in the terminal, so this
+                sub-agent renders the markdown format into a more beautiful format and outputs it.</p>
+
+            <p>Such a complete process is completed.</p>
+
+            <p>If you are still unsatisfied, you can continue to ask questions in this session, or use
+                <code>\exit</code> to exit the program.
+            </p>
+
+            <h2 id="implementation">4. Specific Implementation Principles</h2>
+
+            <p>The core charm of GoSkills Agent lies in its <strong>Framework-less</strong> design. We did not use any
+                black box SDK, but implemented complex Agent behaviors through a clear
+                <strong>Planner-Executor-SubAgents</strong> pattern.
+            </p>
+
+            <h3>4.1 Workflow</h3>
+
+            <p>The entire Agent's running process is a closed-loop feedback system:</p>
+
+            <p><img src="images/agent_worflow.png" alt="Agent Workflow"></p>
+
+            <ol>
+                <li><strong>Perception</strong>: Receive user input.</li>
+                <li><strong>Planning</strong>: Planning Agent uses the reasoning ability of LLM to transform vague
+                    requirements into a structured <code>Plan</code> (containing a series of ordered
+                    <code>Task</code>s).
+                </li>
+                <li><strong>Execution</strong>: The main loop sequentially schedules the corresponding Subagent to
+                    execute tasks.</li>
+                <li><strong>Memory</strong>: The output of all Subagents will be aggregated into the Shared Context for
+                    subsequent steps to use.</li>
+                <li><strong>Expression</strong>: Render Subagent renders the final result into a terminal-friendly
+                    format.</li>
+            </ol>
+
+            <p>At the same time, <code>human-in-the-loop</code> is introduced, allowing users to modify plans and
+                participate in the execution of subagents.</p>
+
+            <h3>4.2 Component Introduction</h3>
+
+            <p>The code structure is clear and highly modular:</p>
+
+            <ul>
+                <li><strong>Planning Agent (<code>agent.go</code>)</strong>: The commander of the system. It is
+                    responsible for understanding intentions, generating plans in JSON format, and dynamically adjusting
+                    strategies based on execution results. It maintains the global context memory.</li>
+                <li><strong>Search Subagent (<code>subagents.go</code>)</strong>: Information collector. Integrated with
+                    Tavily API, capable of performing high-quality Internet searches, and supports automatic page
+                    turning and result preview.</li>
+                <li><strong>Analysis Subagent (<code>subagents.go</code>)</strong>: Logical thinker. It reads the
+                    searched original text, extracts key information, identifies contradictions, and performs logical
+                    reasoning.</li>
+                <li><strong>Report Subagent (<code>subagents.go</code>)</strong>: Content creator. Based on the analysis
+                    results, it can write structured and standardized Markdown reports.</li>
+                <li><strong>Render Subagent (<code>subagents.go</code>)</strong>: Visual designer. Using the
+                    <code>go-term-markdown</code> library, it converts boring text into terminal output with colors,
+                    tables, and code highlighting.
+                </li>
+                <li><strong>TUI (<code>cmd/agent-cli/tui.go</code>)</strong>: Interaction layer. A modern command-line
+                    interface built using the <code>bubbletea</code> framework, supporting dynamic resizing, color
+                    highlighting, and a silky input experience. Implements a geek-style interactive interface similar to
+                    <code>Claude Code</code> and <code>Gemini CLI</code>.
+                </li>
+            </ul>
+
+            <h3>4.3 Future Planning</h3>
+
+            <p>GoSkills Agent is just a beginning, we have a grand vision:</p>
+            <ol>
+                <li><strong>Long-term Memory</strong>: Introduce vector database to give Agent the ability of
+                    "photographic memory".</li>
+                <li><strong>Checkpoints</strong>: Add management capabilities for checkpoints, allowing Agent to resume
+                    execution.</li>
+                <li><strong>Multimodal</strong>: Ability to generate podcasts, PPTs.</li>
+                <li><strong>Tool Ecosystem</strong>: Add support for middleware and expand the ecosystem.</li>
+            </ol>
+
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 GoSkills. Released under the MIT License.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+</body>
+
+</html>
