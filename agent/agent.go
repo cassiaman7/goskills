@@ -106,6 +106,11 @@ Keep plans simple and focused. Typically 3-5 tasks are sufficient.`
 			globalContextBuilder.WriteString(fmt.Sprintf("User: %s\n", msg.Content))
 		}
 	}
+
+	if a.interactionHandler != nil {
+		globalContextBuilder.WriteString("User: 根据用户的输入的文字，决定使用哪种语言，默认简体中文\n")
+	}
+
 	if globalContextBuilder.Len() > 0 {
 		systemPrompt += "\n\nIMPORTANT CONTEXT/INSTRUCTIONS FROM USER:\n" + globalContextBuilder.String()
 	}
