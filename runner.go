@@ -416,6 +416,14 @@ func (a *Agent) executeToolCall(toolCall openai.ToolCall, scriptMap map[string]s
 			return "", fmt.Errorf("failed to unmarshal wikipedia_search arguments: %w", err)
 		}
 		toolOutput, err = tool.WikipediaSearch(params.Query)
+	case "tavily_search":
+		var params struct {
+			Query string `json:"query"`
+		}
+		if err = json.Unmarshal([]byte(toolCall.Function.Arguments), &params); err != nil {
+			return "", fmt.Errorf("failed to unmarshal tavily_search arguments: %w", err)
+		}
+		toolOutput, err = tool.TavilySearch(params.Query)
 	case "web_fetch":
 		var params struct {
 			URL string `json:"url"`

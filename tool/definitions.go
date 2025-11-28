@@ -169,6 +169,23 @@ func GetBaseTools() []openai.Tool {
 				},
 			},
 		},
+		{
+			Type: openai.ToolTypeFunction,
+			Function: &openai.FunctionDefinition{
+				Name:        "tavily_search",
+				Description: "Performs a web search using the Tavily API for the given query and returns a summary of results.",
+				Parameters: map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"query": map[string]interface{}{
+							"type":        "string",
+							"description": "The search query.",
+						},
+					},
+					"required": []string{"query"},
+				},
+			},
+		},
 		// {
 		// 	Type: openai.ToolTypeFunction,
 		// 	Function: &openai.FunctionDefinition{

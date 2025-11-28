@@ -256,7 +256,15 @@ document.addEventListener('DOMContentLoaded', () => {
         container.className = 'tab-content';
 
         // Render script
-        let scriptHtml = '<div class="podcast-script">';
+        let scriptHtml = `
+            <div class="podcast-controls" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef; display: flex; justify-content: flex-end;">
+                <button class="export-script-btn" style="background: #2da44e; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-download"></i> Export Script
+                </button>
+            </div>
+            <div class="podcast-script">
+        `;
+
         if (Array.isArray(script)) {
             script.forEach(line => {
                 const speakerClass = line.speaker.toLowerCase().replace(/\s+/g, '-');
@@ -273,6 +281,29 @@ document.addEventListener('DOMContentLoaded', () => {
         scriptHtml += '</div>';
 
         container.innerHTML = `<div class="report-content">${scriptHtml}</div>`;
+
+        // Add event listener for export button
+        const exportBtn = container.querySelector('.export-script-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => {
+                let textContent = '';
+                if (Array.isArray(script)) {
+                    textContent = script.map(line => `${line.speaker}: ${line.text}`).join('\n\n');
+                } else {
+                    textContent = JSON.stringify(script, null, 2);
+                }
+
+                const blob = new Blob([textContent], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `podcast_script_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            });
+        }
 
         // Add to DOM
         tabsContainer.appendChild(tab);
@@ -468,4 +499,16 @@ document.addEventListener('DOMContentLoaded', () => {
             addLog('error', 'Error sending response: ' + error.message);
         }
     }
+
+    // TEMPORARY: Test Podcast Tab
+    setTimeout(() => {
+        const dummyScript = [
+            { speaker: "Host 1", text: "Welcome to the test podcast." },
+            { speaker: "Host 2", text: "This is a test to verify the export button." },
+            { speaker: "Host 1", text: "Excellent. Let's see if it works." }
+        ];
+        const tabId = createPodcastTab(dummyScript);
+        activateTab(tabId);
+        addLog('info', 'Created test podcast tab.');
+    }, 1000);
 });
