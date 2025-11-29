@@ -50,10 +50,10 @@ type Slide struct {
 // Execute generates a PPT from the input content.
 func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if p.verbose {
-		fmt.Println("📊 PPT 子Agent")
+		fmt.Println("📊 PPT  Subagent")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log(fmt.Sprintf("> PPT 子Agent: %s", task.Description))
+		p.interactionHandler.Log(fmt.Sprintf("> PPT  Subagent: %s", task.Description))
 	}
 
 	// Ensure output directory exists
@@ -132,25 +132,25 @@ func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	}
 
 	// 2. Generate and Build
-	url, err := p.GenerateAndBuild(slides)
+	url, err := p.GenerateAndBuild(ctx, slides)
 	if err != nil {
 		// Log detailed error to terminal/logs
 		if p.verbose {
 			fmt.Printf("❌ PPT 构建失败: %v\n", err)
 		}
 		if p.interactionHandler != nil {
-			// We might want to log it here too, but maybe truncated or full?
-			// The user said "print to terminal logs", implying server side.
-			// But interactionHandler.Log sends to the UI.
-			// Let's log a simplified message to UI and keep full detail in terminal.
-			p.interactionHandler.Log("❌ PPT 构建失败。请查看服务器日志了解详情。")
+			p.interactionHandler.Log("❌ PPT 构建失败。已跳过构建步骤。")
 		}
 
-		// Return a generic error message in the Result so the UI doesn't get cluttered
+		// Return success but with a warning message
 		return Result{
 			TaskType: TaskTypePPT,
-			Success:  false,
-			Error:    "演示文稿构建失败。请查看服务器日志了解详情。",
+			Success:  true,
+			Output:   "PPT 内容已生成，但构建演示文稿失败 (可能是内存不足)。已跳过构建步骤，您可以查看生成的源文件。",
+			Metadata: map[string]interface{}{
+				"slides": slides,
+				"error":  err.Error(),
+			},
 		}, nil
 	}
 
@@ -166,7 +166,7 @@ func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 }
 
 // GenerateAndBuild generates the markdown and builds the Slidev project.
-func (p *PPTSubagent) GenerateAndBuild(slides []Slide) (string, error) {
+func (p *PPTSubagent) GenerateAndBuild(ctx context.Context, slides []Slide) (string, error) {
 	timestamp := time.Now().Unix()
 	dirName := fmt.Sprintf("ppt_%d", timestamp)
 	projectDir := filepath.Join(p.outputDir, dirName)
@@ -214,7 +214,11 @@ func (p *PPTSubagent) GenerateAndBuild(slides []Slide) (string, error) {
 		p.interactionHandler.Log("正在安装依赖...")
 	}
 
-	installCmd := exec.Command("npm", "install")
+	// Create a context with timeout for npm install
+	installCtx, installCancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer installCancel()
+
+	installCmd := exec.CommandContext(installCtx, "npm", "install")
 	installCmd.Dir = projectDir
 	if output, err := installCmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("npm install 失败: %v\n输出: %s", err, string(output))
@@ -228,7 +232,11 @@ func (p *PPTSubagent) GenerateAndBuild(slides []Slide) (string, error) {
 		p.interactionHandler.Log("正在构建演示文稿...")
 	}
 
-	buildCmd := exec.Command("npm", "run", "build")
+	// Create a context with timeout for npm run build
+	buildCtx, buildCancel := context.WithTimeout(ctx, 5*time.Minute)
+	defer buildCancel()
+
+	buildCmd := exec.CommandContext(buildCtx, "npm", "run", "build")
 	buildCmd.Dir = projectDir
 	if output, err := buildCmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("slidev build 失败: %v\n输出: %s", err, string(output))

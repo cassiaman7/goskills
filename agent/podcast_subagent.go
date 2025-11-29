@@ -41,10 +41,10 @@ type DialogueLine struct {
 // Execute generates a podcast from the input content.
 func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if p.verbose {
-		fmt.Println("🎙️ 播客子Agent")
+		fmt.Println("🎙️ 播客 Subagent")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log(fmt.Sprintf("> 播客子Agent: %s", task.Description))
+		p.interactionHandler.Log(fmt.Sprintf("> 播客 Subagent: %s", task.Description))
 	}
 
 	// Get content from parameters or description

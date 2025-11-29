@@ -40,10 +40,10 @@ func (s *SearchSubagent) Type() TaskType {
 // Execute performs a web search based on the task.
 func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if s.verbose {
-		fmt.Println("🌐 网络搜索子Agent")
+		fmt.Println("🌐 网络搜索 Subagent")
 	}
 	if s.interactionHandler != nil {
-		s.interactionHandler.Log(fmt.Sprintf("> 网络搜索子Agent: %s", task.Description))
+		s.interactionHandler.Log(fmt.Sprintf("> 网络搜索 Subagent: %s", task.Description))
 	}
 
 	// Extract query from parameters
@@ -147,10 +147,10 @@ func (a *AnalysisSubagent) Type() TaskType {
 // Execute analyzes information using the LLM.
 func (a *AnalysisSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if a.verbose {
-		fmt.Println("🔬 分析子Agent")
+		fmt.Println("🔬 分析 Subagent")
 	}
 	if a.interactionHandler != nil {
-		a.interactionHandler.Log(fmt.Sprintf("> 分析子Agent: %s", task.Description))
+		a.interactionHandler.Log(fmt.Sprintf("> 分析 Subagent: %s", task.Description))
 	}
 
 	// Get context from parameters if available
@@ -238,10 +238,10 @@ func (r *ReportSubagent) Type() TaskType {
 // Execute generates a formatted report.
 func (r *ReportSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if r.verbose {
-		fmt.Println("📝 报告子Agent")
+		fmt.Println("📝 报告 Subagent")
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("> 报告子Agent: %s", task.Description))
+		r.interactionHandler.Log(fmt.Sprintf("> 报告 Subagent: %s", task.Description))
 	}
 
 	// Get context from parameters if available
@@ -327,10 +327,10 @@ func (r *RenderSubagent) Type() TaskType {
 // Execute renders markdown content.
 func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if r.verbose {
-		fmt.Println("🎨 渲染子Agent")
+		fmt.Println("🎨 渲染 Subagent")
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("> 渲染子Agent: %s", task.Description))
+		r.interactionHandler.Log(fmt.Sprintf("> 渲染 Subagent: %s", task.Description))
 	}
 
 	// Get content from parameters or description

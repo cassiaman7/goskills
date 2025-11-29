@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleLog(content) {
         // Parse specific log formats to update UI
-        if (content.startsWith('📍 步骤')) {
+        if (content.includes('📍 步骤')) {
             // Format: 📍 步骤 1/4: [SEARCH] Description
             const match = content.match(/步骤 (\d+)\/(\d+): \[(.*?)\] (.*)/);
             if (match) {

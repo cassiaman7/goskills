@@ -75,7 +75,7 @@ func (a *PlanningAgent) Plan(ctx context.Context, userRequest string) (*Plan, er
 	}
 
 	systemPrompt := `你是一个规划 Agent，负责将用户请求分解为子任务。
-你可以使用以下子Agent：
+你可以使用以下 Subagent：
 - SEARCH: 执行网络搜索以收集信息
 - ANALYZE: 分析和综合收集到的信息
 - REPORT: 根据分析数据生成格式化报告
@@ -86,7 +86,7 @@ func (a *PlanningAgent) Plan(ctx context.Context, userRequest string) (*Plan, er
 对于给定的用户请求，创建一个包含任务序列的计划。
 每个任务应包含：
 - type: SEARCH, ANALYZE, REPORT, PODCAST, PPT, 或 RENDER 之一
-- description: 子Agent 应该做什么
+- description:  Subagent 应该做什么
 - parameters: 任务的可选参数 (例如: {"query": "搜索词"})
 
 重要提示：
