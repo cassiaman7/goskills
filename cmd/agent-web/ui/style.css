@@ -416,8 +416,36 @@ header h1 {
 
 #chat-form {
     display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input-row {
+    display: flex;
     gap: 10px;
     align-items: center;
+    width: 100%;
+}
+
+.options-row {
+    display: flex;
+    gap: 15px;
+    padding-left: 5px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #57606a;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.option-label input[type="checkbox"] {
+    cursor: pointer;
 }
 
 textarea {
@@ -534,6 +562,7 @@ textarea {
     border: none;
     cursor: pointer;
 }
+
 /* Podcast Styles */
 .podcast-script {
     max-width: 800px;

@@ -68,45 +68,45 @@ func NewPlanningAgent(config AgentConfig, interactionHandler InteractionHandler)
 // Plan decomposes a user request into subtasks.
 func (a *PlanningAgent) Plan(ctx context.Context, userRequest string) (*Plan, error) {
 	if a.config.Verbose {
-		fmt.Println("🧠 Planning Agent")
+		fmt.Println("🧠 规划 Agent")
 	}
 	if a.interactionHandler != nil {
-		a.interactionHandler.Log("🧠 Planning...")
+		a.interactionHandler.Log("🧠 正在规划...")
 	}
 
-	systemPrompt := `You are a planning agent that breaks down user requests into subtasks.
-You have access to the following subagents:
-- SEARCH: Performs web searches to gather information
-- ANALYZE: Analyzes and synthesizes gathered information
-- REPORT: Generates formatted reports from analyzed data
-- PODCAST: Generates a podcast script from the report (TaskType: PODCAST)
-- PPT: Generates a slide deck (HTML) from the report (TaskType: PPT)
-- RENDER: Renders markdown content to terminal-friendly format
+	systemPrompt := `你是一个规划 Agent，负责将用户请求分解为子任务。
+你可以使用以下子Agent：
+- SEARCH: 执行网络搜索以收集信息
+- ANALYZE: 分析和综合收集到的信息
+- REPORT: 根据分析数据生成格式化报告
+- PODCAST: 根据报告生成播客脚本 (TaskType: PODCAST)
+- PPT: 根据报告生成幻灯片 (HTML) (TaskType: PPT)
+- RENDER: 将 Markdown 内容渲染为终端友好的格式
 
-For the given user request, create a plan with a sequence of tasks.
-Each task should have:
-- type: one of SEARCH, ANALYZE, REPORT, PODCAST, PPT, or RENDER
-- description: what the subagent should do
-- parameters: optional parameters for the task (e.g., {"query": "search term"})
+对于给定的用户请求，创建一个包含任务序列的计划。
+每个任务应包含：
+- type: SEARCH, ANALYZE, REPORT, PODCAST, PPT, 或 RENDER 之一
+- description: 子Agent 应该做什么
+- parameters: 任务的可选参数 (例如: {"query": "搜索词"})
 
-IMPORTANT: 
-- ONLY include a PODCAST task if the user explicitly requests a podcast.
-- ONLY include a PPT task if the user explicitly requests slides or a presentation.
-- ALWAYS include a RENDER task after the REPORT task to generate the final text report.
+重要提示：
+- 仅在用户明确请求播客时包含 PODCAST 任务。
+- 仅在用户明确请求幻灯片或演示文稿时包含 PPT 任务。
+- 在 REPORT 任务之后始终包含 RENDER 任务，以生成最终的文本报告。
 
-Return ONLY a valid JSON object with this structure:
+仅返回具有此结构的有效 JSON 对象：
 {
-  "description": "Overall plan description",
+  "description": "总体计划描述",
   "tasks": [
     {"type": "SEARCH", "description": "...", "parameters": {"query": "..."}},
     {"type": "ANALYZE", "description": "..."},
     {"type": "REPORT", "description": "..."},
-    {"type": "PPT", "description": "Generate a slide deck from the report"},
-    {"type": "RENDER", "description": "Render the report"}
+    {"type": "PPT", "description": "根据报告生成幻灯片"},
+    {"type": "RENDER", "description": "渲染报告"}
   ]
 }
 
-Keep plans simple and focused. Typically 3-5 tasks are sufficient.`
+保持计划简单且重点突出。通常 3-5 个任务就足够了。`
 
 	// Inject global context from history
 	var globalContextBuilder strings.Builder
@@ -116,12 +116,8 @@ Keep plans simple and focused. Typically 3-5 tasks are sufficient.`
 		}
 	}
 
-	if a.interactionHandler != nil {
-		globalContextBuilder.WriteString("User: 根据用户的输入的文字，首先决定会话中使用哪种语言，默认整个会话使用简体中文\n")
-	}
-
 	if globalContextBuilder.Len() > 0 {
-		systemPrompt += "\n\nIMPORTANT CONTEXT/INSTRUCTIONS FROM USER:\n" + globalContextBuilder.String()
+		systemPrompt += "\n\n来自用户的重要上下文/指令：\n" + globalContextBuilder.String()
 	}
 
 	messages := []openai.ChatCompletionMessage{
@@ -133,7 +129,7 @@ Keep plans simple and focused. Typically 3-5 tasks are sufficient.`
 
 	messages = append(messages, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
-		Content: fmt.Sprintf("Create a plan for this request: %s", userRequest),
+		Content: fmt.Sprintf("为该请求创建计划：%s", userRequest),
 	})
 
 	req := openai.ChatCompletionRequest{
@@ -173,14 +169,14 @@ Keep plans simple and focused. Typically 3-5 tasks are sufficient.`
 	}
 
 	if a.config.Verbose {
-		fmt.Printf("📋 Plan: %s\n", plan.Description)
+		fmt.Printf("📋 计划: %s\n", plan.Description)
 		for i, task := range plan.Tasks {
 			fmt.Printf("  %d. [%s] %s\n", i+1, task.Type, task.Description)
 		}
 		fmt.Println()
 	}
 	if a.interactionHandler != nil {
-		a.interactionHandler.Log(fmt.Sprintf("📋 Plan generated: %s", plan.Description))
+		a.interactionHandler.Log(fmt.Sprintf("📋 计划已生成: %s", plan.Description))
 	}
 
 	return &plan, nil
@@ -213,9 +209,9 @@ func (a *PlanningAgent) PlanWithReview(ctx context.Context, userRequest string) 
 
 		// Re-plan with the user's modification
 		if a.config.Verbose {
-			fmt.Printf("🔄 Re-planning based on user feedback: %s\n\n", modification)
+			fmt.Printf("🔄 根据用户反馈重新规划: %s\n\n", modification)
 		}
-		a.interactionHandler.Log(fmt.Sprintf("🔄 Re-planning based on user feedback: %s", modification))
+		a.interactionHandler.Log(fmt.Sprintf("🔄 根据用户反馈重新规划: %s", modification))
 
 		plan, err = a.Plan(ctx, modification)
 		if err != nil {
@@ -229,7 +225,7 @@ func (a *PlanningAgent) PlanWithReview(ctx context.Context, userRequest string) 
 // Execute runs the plan by executing each task with the appropriate subagent.
 func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, error) {
 	if a.config.Verbose {
-		fmt.Println("🔍 Executing plan...")
+		fmt.Println("🔍 正在执行计划...")
 		fmt.Println()
 	}
 
@@ -239,10 +235,10 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 
 	for i, task := range plan.Tasks {
 		if a.config.Verbose {
-			fmt.Printf("📍 Step %d/%d: [%s] %s\n", i+1, len(plan.Tasks), task.Type, task.Description)
+			fmt.Printf("📍 步骤 %d/%d: [%s] %s\n", i+1, len(plan.Tasks), task.Type, task.Description)
 		}
 		if a.interactionHandler != nil {
-			a.interactionHandler.Log(fmt.Sprintf("📍 Step %d/%d: [%s] %s", i+1, len(plan.Tasks), task.Type, task.Description))
+			a.interactionHandler.Log(fmt.Sprintf("📍 步骤 %d/%d: [%s] %s", i+1, len(plan.Tasks), task.Type, task.Description))
 		}
 
 		// Inject global context from history
@@ -287,17 +283,17 @@ func (a *PlanningAgent) Execute(ctx context.Context, plan *Plan) ([]Result, erro
 			contextData = append(contextData, fmt.Sprintf("Output from %s task:\n%s", task.Type, result.Output))
 
 			if a.config.Verbose {
-				fmt.Printf("  ✓ Completed\n\n")
+				fmt.Printf("  ✓ 完成\n\n")
 			}
 			if a.interactionHandler != nil {
-				a.interactionHandler.Log("  ✓ Completed")
+				a.interactionHandler.Log("  ✓ 完成")
 			}
 		} else {
 			if a.config.Verbose {
-				fmt.Printf("  ✗ Failed: %s\n\n", result.Error)
+				fmt.Printf("  ✗ 失败: %s\n\n", result.Error)
 			}
 			if a.interactionHandler != nil {
-				a.interactionHandler.Log(fmt.Sprintf("  ✗ Failed: %s", result.Error))
+				a.interactionHandler.Log(fmt.Sprintf("  ✗ 失败: %s", result.Error))
 			}
 		}
 	}
@@ -405,9 +401,9 @@ func (a *PlanningAgent) Chat(ctx context.Context, userRequest string) (string, e
 		}
 	}
 
-	systemPrompt := "You are a helpful assistant."
+	systemPrompt := "你是一个乐于助人的助手。"
 	if globalContextBuilder.Len() > 0 {
-		systemPrompt += "\n\nIMPORTANT CONTEXT/INSTRUCTIONS FROM USER:\n" + globalContextBuilder.String()
+		systemPrompt += "\n\n来自用户的重要上下文/指令：\n" + globalContextBuilder.String()
 	}
 
 	messages := []openai.ChatCompletionMessage{

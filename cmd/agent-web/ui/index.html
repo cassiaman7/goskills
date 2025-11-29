@@ -18,10 +18,10 @@
         <div class="main-content">
             <div class="panel left-panel">
                 <div class="panel-header">
-                    <i class="fas fa-compass"></i> RESEARCH PLAN
+                    <i class="fas fa-compass"></i> 研究计划
                 </div>
                 <div id="plan-container">
-                    <div class="empty-state">No active plan</div>
+                    <div class="empty-state">暂无计划</div>
                 </div>
             </div>
 
@@ -33,21 +33,27 @@
                         <span class="control green"></span>
                     </div>
                     <div class="window-tabs">
-                        <div class="tab active" data-tab="terminal">Terminal</div>
+                        <div class="tab active" data-tab="terminal">终端</div>
                     </div>
                 </div>
                 <div id="terminal-container" class="tab-content active">
-                    <div class="log-line system">> Initializing agent...</div>
-                    <div class="log-line system">> Initialized agent</div>
+                    <div class="log-line system">> 正在初始化 Agent...</div>
+                    <div class="log-line system">> Agent 初始化完成</div>
                 </div>
             </div>
         </div>
 
         <div id="input-area">
             <form id="chat-form">
-                <textarea id="user-input" placeholder="Type your request here..." rows="1" required></textarea>
-                <button type="submit" id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                <div class="input-row">
+                    <textarea id="user-input" placeholder="在此输入您的请求(比如介绍北京这个城市)..." rows="1" required></textarea>
+                    <button type="submit" id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                </div>
             </form>
+        </div>
+        <div class="options-row">
+            <label class="option-label"><input type="checkbox" id="ppt-checkbox"> PPT 演示</label>
+            <label class="option-label"><input type="checkbox" id="podcast-checkbox"> 播客</label>
         </div>
     </div>
 
@@ -65,15 +71,15 @@
     <template id="plan-review-modal-template">
         <div class="modal-overlay">
             <div class="modal">
-                <h3>Review Plan</h3>
+                <h3>审查计划</h3>
                 <div class="plan-preview"></div>
                 <div class="modal-actions">
-                    <button class="approve-btn">Approve</button>
-                    <button class="modify-btn">Modify</button>
+                    <button class="approve-btn">批准</button>
+                    <button class="modify-btn">修改</button>
                 </div>
                 <div class="modification-input" style="display: none;">
-                    <textarea placeholder="Enter your modifications..."></textarea>
-                    <button class="submit-mod-btn">Submit</button>
+                    <textarea placeholder="输入您的修改意见..."></textarea>
+                    <button class="submit-mod-btn">提交</button>
                 </div>
             </div>
         </div>

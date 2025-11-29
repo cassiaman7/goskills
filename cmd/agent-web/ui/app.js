@@ -29,15 +29,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const pptCheckbox = document.getElementById('ppt-checkbox');
+    const podcastCheckbox = document.getElementById('podcast-checkbox');
+
+    // ... (existing code)
+
     // Handle form submission
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const text = userInput.value.trim();
+        let text = userInput.value.trim();
         if (!text) return;
+
+        setLoading(true);
+
+        // Append instructions based on checkboxes
+        if (pptCheckbox.checked) {
+            text += " 同时生成 PPT 演示文稿。";
+        }
+        if (podcastCheckbox.checked) {
+            text += " 同时生成播客。";
+        }
 
         // Clear previous state
         userInput.value = '';
         userInput.style.height = '';
+        pptCheckbox.checked = false;
+        podcastCheckbox.checked = false;
 
         // Clear previous state (except terminal history)
         planContainer.innerHTML = '<div class="empty-state">Planning...</div>';
@@ -59,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('网络响应不正常');
             }
 
             if (!eventSource) {
@@ -68,7 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error:', error);
-            addLog('error', 'Error sending message: ' + error.message);
+            addLog('error', '发送消息错误: ' + error.message);
+            setLoading(false);
         }
     });
 
@@ -119,8 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tab.className = 'tab';
         tab.dataset.tab = tabId;
         tab.innerHTML = `
-            Report ${reportCount}
-            <span class="close-tab" title="Close Report"><i class="fas fa-times"></i></span>
+            报告 ${reportCount}
+            <span class="close-tab" title="关闭报告"><i class="fas fa-times"></i></span>
         `;
 
         // Create Content Container
@@ -166,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 handleLog(data.content);
                 break;
             case 'response':
-                addLog('success', 'Response received.');
+                addLog('success', '收到响应。');
 
                 // Create new report tab
                 const tabId = createReportTab(data.content);
@@ -174,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Add button to view report
                 const viewBtn = document.createElement('button');
-                viewBtn.textContent = 'View Report';
+                viewBtn.textContent = '查看报告';
                 viewBtn.className = 'view-report-btn';
                 viewBtn.style.cssText = 'background: #2da44e; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 5px; font-size: 0.85rem; margin-right: 10px;';
 
@@ -201,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle Podcast
                 if (data.podcast) {
                     const podcastBtn = document.createElement('button');
-                    podcastBtn.textContent = 'View Podcast';
+                    podcastBtn.textContent = '查看播客';
                     podcastBtn.className = 'view-podcast-btn';
                     podcastBtn.style.cssText = 'background: #00add8; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 5px; font-size: 0.85rem; margin-right: 10px;';
 
@@ -225,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Handle PPT
                 if (data.ppt) {
                     const pptBtn = document.createElement('button');
-                    pptBtn.textContent = 'View PPT';
+                    pptBtn.textContent = '查看 PPT';
                     pptBtn.className = 'view-ppt-btn';
                     pptBtn.style.cssText = 'background: #8e44ad; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-top: 5px; font-size: 0.85rem;';
 
@@ -243,9 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'error':
                 addLog('error', data.content);
+                setLoading(false);
                 break;
             case 'done':
-                addLog('success', 'Task completed.');
+                addLog('success', '任务完成。');
+                setLoading(false);
                 break;
         }
     }
@@ -259,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tab.className = 'tab';
         tab.dataset.tab = tabId;
         tab.innerHTML = `
-            Podcast ${reportCount}
-            <span class="close-tab" title="Close Podcast"><i class="fas fa-times"></i></span>
+            播客 ${reportCount}
+            <span class="close-tab" title="关闭播客"><i class="fas fa-times"></i></span>
         `;
 
         // Create Content Container
@@ -272,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let scriptHtml = `
             <div class="podcast-controls" style="margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eaecef; display: flex; justify-content: flex-end;">
                 <button class="export-script-btn" style="background: #2da44e; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-download"></i> Export Script
+                    <i class="fas fa-download"></i> 导出脚本
                 </button>
             </div>
             <div class="podcast-script">
@@ -339,9 +359,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleLog(content) {
         // Parse specific log formats to update UI
-        if (content.startsWith('📍 Step')) {
-            // Format: 📍 Step 1/4: [SEARCH] Description
-            const match = content.match(/Step (\d+)\/(\d+): \[(.*?)\] (.*)/);
+        if (content.startsWith('📍 步骤')) {
+            // Format: 📍 步骤 1/4: [SEARCH] Description
+            const match = content.match(/步骤 (\d+)\/(\d+): \[(.*?)\] (.*)/);
             if (match) {
                 const index = parseInt(match[1]) - 1;
                 const type = match[3];
@@ -351,11 +371,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 addLog('highlight', content);
                 return;
             }
-        } else if (content.includes('✓ Completed')) {
+        } else if (content.includes('✓ 完成')) {
             updateTaskStatus(currentTaskIndex, 'completed');
             addLog('success', content);
             return;
-        } else if (content.includes('✗ Failed')) {
+        } else if (content.includes('✗ 失败')) {
             updateTaskStatus(currentTaskIndex, 'failed');
             addLog('error', content);
             return;
@@ -382,9 +402,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderPlan(plan) {
-        addLog('info', 'Rendering plan...');
+        addLog('info', '正在渲染计划...');
         if (!plan || !plan.tasks || !Array.isArray(plan.tasks)) {
-            addLog('error', 'Invalid plan data received');
+            addLog('error', '收到的计划数据无效');
             console.error('Invalid plan:', plan);
             return;
         }
@@ -394,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTaskIndex = -1;
 
         if (tasks.length === 0) {
-            planContainer.innerHTML = '<div class="empty-state">No tasks in plan</div>';
+            planContainer.innerHTML = '<div class="empty-state">计划中没有任务</div>';
             return;
         }
 
@@ -413,7 +433,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             planContainer.appendChild(item);
         });
-        addLog('success', `Plan rendered with ${tasks.length} tasks.`);
+        addLog('success', `计划渲染完成，共 ${tasks.length} 个任务。`);
     }
 
     function updateTaskStatus(index, status) {
@@ -459,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const planPreview = clone.querySelector('.plan-preview');
         // Format plan for preview
-        let previewText = `Goal: ${plan.description}\n\nTasks:\n`;
+        let previewText = `目标: ${plan.description}\n\n任务:\n`;
         plan.tasks.forEach((t, i) => {
             previewText += `${i + 1}. [${t.type}] ${t.description}\n`;
         });
@@ -474,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         approveBtn.addEventListener('click', async () => {
             await sendResponse('');
             modalOverlay.remove();
-            addLog('system', 'Plan approved.');
+            addLog('system', '计划已批准。');
         });
 
         modifyBtn.addEventListener('click', () => {
@@ -489,7 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await sendResponse(modification);
             modalOverlay.remove();
-            addLog('system', 'Plan modification submitted: ' + modification);
+            addLog('system', '计划修改已提交: ' + modification);
         });
 
         document.body.appendChild(modalOverlay);
@@ -509,9 +529,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('Error sending response:', error);
-            addLog('error', 'Error sending response: ' + error.message);
+            addLog('error', '发送响应错误: ' + error.message);
         }
     }
 
+    function setLoading(isLoading) {
+        userInput.disabled = isLoading;
+        const sendBtn = document.getElementById('send-btn');
+        sendBtn.disabled = isLoading;
+
+        if (isLoading) {
+            sendBtn.style.opacity = '0.5';
+            sendBtn.style.cursor = 'not-allowed';
+        } else {
+            sendBtn.style.opacity = '1';
+            sendBtn.style.cursor = 'pointer';
+            userInput.focus();
+        }
+    }
 
 });

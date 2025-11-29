@@ -40,10 +40,10 @@ func (s *SearchSubagent) Type() TaskType {
 // Execute performs a web search based on the task.
 func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if s.verbose {
-		fmt.Println("🌐 Web Search Subagent")
+		fmt.Println("🌐 网络搜索子Agent")
 	}
 	if s.interactionHandler != nil {
-		s.interactionHandler.Log(fmt.Sprintf("> Web Search Subagent: %s", task.Description))
+		s.interactionHandler.Log(fmt.Sprintf("> 网络搜索子Agent: %s", task.Description))
 	}
 
 	// Extract query from parameters
@@ -53,7 +53,7 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	}
 
 	if s.verbose {
-		fmt.Printf("  Query: %q\n", query)
+		fmt.Printf("  查询: %q\n", query)
 	}
 
 	// Perform Tavily search
@@ -61,7 +61,7 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	if err != nil {
 		// Fallback to DuckDuckGo if Tavily fails (e.g. missing key)
 		if s.verbose {
-			fmt.Printf("  ⚠️ Tavily search failed: %v. Falling back to DuckDuckGo.\n", err)
+			fmt.Printf("  ⚠️ Tavily 搜索失败: %v。回退到 DuckDuckGo。\n", err)
 		}
 		searchResult, err = tool.DuckDuckGoSearch(query)
 		if err != nil {
@@ -77,7 +77,7 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 			wantMore, err := s.interactionHandler.ReviewSearchResults(searchResult)
 			if err == nil && wantMore {
 				if s.verbose {
-					fmt.Println("  🔄 User requested more results. Searching up to 50 results...")
+					fmt.Println("  🔄 用户请求更多结果。正在搜索最多 50 条结果...")
 				}
 				moreResults, err := tool.TavilySearchWithLimit(query, 50)
 				if err == nil {
@@ -87,11 +87,11 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 						if len(preview) > 500 {
 							preview = preview[:500] + "..."
 						}
-						fmt.Printf("  🔎 New Results Preview:\n%s\n", preview)
+						fmt.Printf("  🔎 新结果预览:\n%s\n", preview)
 					}
 				} else {
 					if s.verbose {
-						fmt.Printf("  ⚠️ Failed to get more results: %v. Keeping original results.\n", err)
+						fmt.Printf("  ⚠️ 获取更多结果失败: %v。保留原始结果。\n", err)
 					}
 				}
 			}
@@ -101,14 +101,14 @@ func (s *SearchSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	// Also try Wikipedia if results are sparse (optional, keeping existing logic)
 	wikiResult, wikiErr := tool.WikipediaSearch(query)
 	if wikiErr == nil && wikiResult != "" {
-		searchResult = fmt.Sprintf("Web Search Results:\n%s\n\nWikipedia Results:\n%s", searchResult, wikiResult)
+		searchResult = fmt.Sprintf("网络搜索结果:\n%s\n\n维基百科结果:\n%s", searchResult, wikiResult)
 	}
 
 	if s.verbose {
-		fmt.Printf("\n  ✓ Retrieved information (%d bytes)\n", len(searchResult))
+		fmt.Printf("\n  ✓ 已检索信息 (%d 字节)\n", len(searchResult))
 	}
 	if s.interactionHandler != nil {
-		s.interactionHandler.Log(fmt.Sprintf("✓ Retrieved information (%d bytes)", len(searchResult)))
+		s.interactionHandler.Log(fmt.Sprintf("✓ 已检索信息 (%d 字节)", len(searchResult)))
 	}
 
 	return Result{
@@ -147,10 +147,10 @@ func (a *AnalysisSubagent) Type() TaskType {
 // Execute analyzes information using the LLM.
 func (a *AnalysisSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if a.verbose {
-		fmt.Println("🔬 Analysis Subagent")
+		fmt.Println("🔬 分析子Agent")
 	}
 	if a.interactionHandler != nil {
-		a.interactionHandler.Log(fmt.Sprintf("> Analysis Subagent: %s", task.Description))
+		a.interactionHandler.Log(fmt.Sprintf("> 分析子Agent: %s", task.Description))
 	}
 
 	// Get context from parameters if available
@@ -158,16 +158,16 @@ func (a *AnalysisSubagent) Execute(ctx context.Context, task Task) (Result, erro
 
 	var prompt string
 	if hasContext && len(contextData) > 0 {
-		prompt = fmt.Sprintf("Analyze the following information and %s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
+		prompt = fmt.Sprintf("分析以下信息并 %s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
 	} else {
 		prompt = task.Description
 	}
 
 	// Check for global context
 	globalContext, _ := task.Parameters["global_context"].(string)
-	systemPrompt := "You are an analytical assistant that synthesizes and analyzes information. Provide clear, structured analysis."
+	systemPrompt := "你是一个分析助手，负责综合和分析信息。请提供清晰、结构化的分析。"
 	if globalContext != "" {
-		systemPrompt += "\n\nIMPORTANT CONTEXT/INSTRUCTIONS FROM USER:\n" + globalContext
+		systemPrompt += "\n\n来自用户的重要上下文/指令：\n" + globalContext
 	}
 
 	messages := []openai.ChatCompletionMessage{
@@ -199,10 +199,10 @@ func (a *AnalysisSubagent) Execute(ctx context.Context, task Task) (Result, erro
 	analysis := resp.Choices[0].Message.Content
 
 	if a.verbose {
-		fmt.Printf("  ✓ Analysis complete (%d bytes)\n", len(analysis))
+		fmt.Printf("  ✓ 分析完成 (%d 字节)\n", len(analysis))
 	}
 	if a.interactionHandler != nil {
-		a.interactionHandler.Log(fmt.Sprintf("✓ Analysis complete (%d bytes)", len(analysis)))
+		a.interactionHandler.Log(fmt.Sprintf("✓ 分析完成 (%d 字节)", len(analysis)))
 	}
 
 	return Result{
@@ -238,10 +238,10 @@ func (r *ReportSubagent) Type() TaskType {
 // Execute generates a formatted report.
 func (r *ReportSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if r.verbose {
-		fmt.Println("📝 Report Subagent")
+		fmt.Println("📝 报告子Agent")
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("> Report Subagent: %s", task.Description))
+		r.interactionHandler.Log(fmt.Sprintf("> 报告子Agent: %s", task.Description))
 	}
 
 	// Get context from parameters if available
@@ -249,16 +249,16 @@ func (r *ReportSubagent) Execute(ctx context.Context, task Task) (Result, error)
 
 	var prompt string
 	if hasContext && len(contextData) > 0 {
-		prompt = fmt.Sprintf("Based on the following information, %s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
+		prompt = fmt.Sprintf("基于以下信息，%s:\n\n%s", task.Description, strings.Join(contextData, "\n\n"))
 	} else {
 		prompt = task.Description
 	}
 
 	// Check for global context
 	globalContext, _ := task.Parameters["global_context"].(string)
-	systemPrompt := "You are a report writing assistant that creates well-formatted, clear, and comprehensive reports in Markdown format. Use appropriate headings, lists, and formatting to make the report easy to read. If the provided information includes images with URLs and descriptions, select the most relevant ones and embed them in the report using standard Markdown image syntax: `![Description](URL)`. Place images near the relevant text sections."
+	systemPrompt := "你是一个报告写作助手，负责创建格式良好、清晰且全面的 Markdown 格式报告。使用适当的标题、列表和格式使报告易于阅读。如果提供的信息包含带有 URL 和描述的图片，请选择最相关的图片，并使用标准 Markdown 图片语法 `![描述](URL)` 将其嵌入报告中。将图片放置在相关文本部分附近。"
 	if globalContext != "" {
-		systemPrompt += "\n\nIMPORTANT CONTEXT/INSTRUCTIONS FROM USER:\n" + globalContext
+		systemPrompt += "\n\n来自用户的重要上下文/指令：\n" + globalContext
 	}
 
 	messages := []openai.ChatCompletionMessage{
@@ -290,10 +290,10 @@ func (r *ReportSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	report := resp.Choices[0].Message.Content
 
 	if r.verbose {
-		fmt.Printf("  ✓ Report generated (%d bytes)\n", len(report))
+		fmt.Printf("  ✓ 报告已生成 (%d 字节)\n", len(report))
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("✓ Report generated (%d bytes)", len(report)))
+		r.interactionHandler.Log(fmt.Sprintf("✓ 报告已生成 (%d 字节)", len(report)))
 	}
 
 	return Result{
@@ -327,10 +327,10 @@ func (r *RenderSubagent) Type() TaskType {
 // Execute renders markdown content.
 func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if r.verbose {
-		fmt.Println("🎨 Render Subagent")
+		fmt.Println("🎨 渲染子Agent")
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("> Render Subagent: %s", task.Description))
+		r.interactionHandler.Log(fmt.Sprintf("> 渲染子Agent: %s", task.Description))
 	}
 
 	// Get content from parameters or description
@@ -369,10 +369,10 @@ func (r *RenderSubagent) Execute(ctx context.Context, task Task) (Result, error)
 	}
 
 	if r.verbose {
-		fmt.Printf("  Rendering %d bytes of content\n", len(content))
+		fmt.Printf("  正在渲染 %d 字节的内容\n", len(content))
 	}
 	if r.interactionHandler != nil {
-		r.interactionHandler.Log(fmt.Sprintf("Rendering %d bytes of content", len(content)))
+		r.interactionHandler.Log(fmt.Sprintf("正在渲染 %d 字节的内容", len(content)))
 	}
 
 	// Render markdown

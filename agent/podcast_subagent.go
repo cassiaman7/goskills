@@ -41,10 +41,10 @@ type DialogueLine struct {
 // Execute generates a podcast from the input content.
 func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if p.verbose {
-		fmt.Println("🎙️ Podcast Subagent")
+		fmt.Println("🎙️ 播客子Agent")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log(fmt.Sprintf("> Podcast Subagent: %s", task.Description))
+		p.interactionHandler.Log(fmt.Sprintf("> 播客子Agent: %s", task.Description))
 	}
 
 	// Get content from parameters or description
@@ -83,7 +83,7 @@ func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error
 	}
 
 	if p.verbose {
-		fmt.Println("  Generating dialogue script...")
+		fmt.Println("  正在生成对话脚本...")
 	}
 
 	// 1. Generate Dialogue Script
@@ -92,15 +92,15 @@ func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error
 		return Result{
 			TaskType: TaskTypePodcast,
 			Success:  false,
-			Error:    fmt.Sprintf("failed to generate script: %v", err),
+			Error:    fmt.Sprintf("生成脚本失败: %v", err),
 		}, err
 	}
 
 	if p.verbose {
-		fmt.Printf("  ✓ Script generated (%d lines)\n", len(script))
+		fmt.Printf("  ✓ 脚本已生成 (%d 行)\n", len(script))
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log(fmt.Sprintf("✓ Script generated (%d lines)", len(script)))
+		p.interactionHandler.Log(fmt.Sprintf("✓ 脚本已生成 (%d 行)", len(script)))
 	}
 
 	// Convert script to JSON string for output
@@ -109,11 +109,11 @@ func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error
 		return Result{
 			TaskType: TaskTypePodcast,
 			Success:  false,
-			Error:    fmt.Sprintf("failed to marshal script: %v", err),
+			Error:    fmt.Sprintf("序列化脚本失败: %v", err),
 		}, err
 	}
 
-	outputMsg := fmt.Sprintf("Podcast script generated successfully!\n\nPlease submit the following script to https://listenhub.ai/zh to generate the audio:\n\n%s", string(scriptJSON))
+	outputMsg := fmt.Sprintf("播客脚本生成成功！\n\n请将以下脚本提交到 https://listenhub.ai/zh 以生成音频：\n\n%s", string(scriptJSON))
 
 	return Result{
 		TaskType: TaskTypePodcast,
@@ -126,12 +126,12 @@ func (p *PodcastSubagent) Execute(ctx context.Context, task Task) (Result, error
 }
 
 func (p *PodcastSubagent) generateScript(ctx context.Context, content string) ([]DialogueLine, error) {
-	systemPrompt := `You are a podcast producer. Your goal is to convert the provided input text (a report or article) into an engaging dialogue between two hosts:
-- Host 1 (Male): Enthusiastic, curious, asks questions, and introduces topics.
-- Host 2 (Female): Knowledgeable, calm, explains details, and provides insights.
+	systemPrompt := `你是一位播客制作人。你的目标是将提供的输入文本（报告或文章）转换为两位主持人之间引人入胜的对话：
+- 主持人 1 (男): 热情、好奇，负责提问和引入话题。
+- 主持人 2 (女): 知识渊博、冷静，负责解释细节和提供见解。
 
-The dialogue should be natural, conversational, and easy to listen to. It should cover the main points of the input text.
-Output ONLY a JSON array of objects, where each object has "speaker" ("Host 1" or "Host 2") and "text" (the spoken line).
+对话应自然、口语化且易于收听。它应涵盖输入文本的要点。
+仅输出一个 JSON 对象数组，其中每个对象包含 "speaker" ("Host 1" 或 "Host 2") 和 "text" (口语台词)。
 Example:
 [
   {"speaker": "Host 1", "text": "Welcome back to the show! Today we're discussing..."},
@@ -145,7 +145,7 @@ Example:
 		},
 		{
 			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("Convert this text into a podcast dialogue (输出中文):\n\n%s", content),
+			Content: fmt.Sprintf("将此文本转换为播客对话 (输出中文):\n\n%s", content),
 		},
 	}
 
@@ -175,7 +175,7 @@ Example:
 
 	var script []DialogueLine
 	if err := json.Unmarshal([]byte(scriptContent), &script); err != nil {
-		return nil, fmt.Errorf("failed to parse script JSON: %w", err)
+		return nil, fmt.Errorf("解析脚本 JSON 失败: %w", err)
 	}
 
 	return script, nil

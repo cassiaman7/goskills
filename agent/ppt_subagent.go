@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -49,10 +50,10 @@ type Slide struct {
 // Execute generates a PPT from the input content.
 func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if p.verbose {
-		fmt.Println("📊 PPT Subagent")
+		fmt.Println("📊 PPT 子Agent")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log(fmt.Sprintf("> PPT Subagent: %s", task.Description))
+		p.interactionHandler.Log(fmt.Sprintf("> PPT 子Agent: %s", task.Description))
 	}
 
 	// Ensure output directory exists
@@ -60,7 +61,7 @@ func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 		return Result{
 			TaskType: TaskTypePPT,
 			Success:  false,
-			Error:    fmt.Sprintf("failed to create output directory: %v", err),
+			Error:    fmt.Sprintf("创建输出目录失败: %v", err),
 		}, err
 	}
 
@@ -99,22 +100,35 @@ func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 		}
 	}
 
+	// Extract images from content
+	var images []string
+	re := regexp.MustCompile(`!\[.*?\]\((.*?)\)`)
+	matches := re.FindAllStringSubmatch(content, -1)
+	for _, match := range matches {
+		if len(match) > 1 {
+			images = append(images, match[1])
+		}
+	}
+
 	if p.verbose {
-		fmt.Println("  Generating slide structure...")
+		fmt.Println("  正在生成幻灯片结构...")
+		if len(images) > 0 {
+			fmt.Printf("  在内容中发现 %d 张图片\n", len(images))
+		}
 	}
 
 	// 1. Generate Slide Structure
-	slides, err := p.generateSlides(ctx, content)
+	slides, err := p.generateSlides(ctx, content, images)
 	if err != nil {
 		return Result{
 			TaskType: TaskTypePPT,
 			Success:  false,
-			Error:    fmt.Sprintf("failed to generate slides: %v", err),
+			Error:    fmt.Sprintf("生成幻灯片失败: %v", err),
 		}, err
 	}
 
 	if p.verbose {
-		fmt.Printf("  ✓ Generated %d slides\n", len(slides))
+		fmt.Printf("  ✓ 已生成 %d 张幻灯片\n", len(slides))
 	}
 
 	// 2. Generate and Build
@@ -122,28 +136,28 @@ func (p *PPTSubagent) Execute(ctx context.Context, task Task) (Result, error) {
 	if err != nil {
 		// Log detailed error to terminal/logs
 		if p.verbose {
-			fmt.Printf("❌ PPT Build Failed: %v\n", err)
+			fmt.Printf("❌ PPT 构建失败: %v\n", err)
 		}
 		if p.interactionHandler != nil {
 			// We might want to log it here too, but maybe truncated or full?
 			// The user said "print to terminal logs", implying server side.
 			// But interactionHandler.Log sends to the UI.
 			// Let's log a simplified message to UI and keep full detail in terminal.
-			p.interactionHandler.Log("❌ PPT Build Failed. Check server logs for details.")
+			p.interactionHandler.Log("❌ PPT 构建失败。请查看服务器日志了解详情。")
 		}
 
 		// Return a generic error message in the Result so the UI doesn't get cluttered
 		return Result{
 			TaskType: TaskTypePPT,
 			Success:  false,
-			Error:    "Presentation build failed. Please check the server logs for details.",
+			Error:    "演示文稿构建失败。请查看服务器日志了解详情。",
 		}, nil
 	}
 
 	return Result{
 		TaskType: TaskTypePPT,
 		Success:  true,
-		Output:   fmt.Sprintf("Presentation generated successfully. View it at: %s", url),
+		Output:   fmt.Sprintf("演示文稿生成成功。请访问: %s", url),
 		Metadata: map[string]interface{}{
 			"ppt_url": url,
 			"slides":  slides,
@@ -158,16 +172,16 @@ func (p *PPTSubagent) GenerateAndBuild(slides []Slide) (string, error) {
 	projectDir := filepath.Join(p.outputDir, dirName)
 
 	if err := os.MkdirAll(projectDir, 0755); err != nil {
-		return "", fmt.Errorf("failed to create project directory: %v", err)
+		return "", fmt.Errorf("创建项目目录失败: %v", err)
 	}
 
 	markdown := p.generateSlidevMarkdown(slides)
 	if err := os.WriteFile(filepath.Join(projectDir, "slides.md"), []byte(markdown), 0644); err != nil {
-		return "", fmt.Errorf("failed to write slides.md: %v", err)
+		return "", fmt.Errorf("写入 slides.md 失败: %v", err)
 	}
 
 	if p.verbose {
-		fmt.Printf("  ✓ Generated slides.md in %s\n", projectDir)
+		fmt.Printf("  ✓ 已在 %s 生成 slides.md\n", projectDir)
 	}
 
 	// Build with Slidev
@@ -189,65 +203,71 @@ func (p *PPTSubagent) GenerateAndBuild(slides []Slide) (string, error) {
 	packageJson = strings.Replace(packageJson, "--base ", "--base "+basePath, 1)
 
 	if err := os.WriteFile(filepath.Join(projectDir, "package.json"), []byte(packageJson), 0644); err != nil {
-		return "", fmt.Errorf("failed to write package.json: %v", err)
+		return "", fmt.Errorf("写入 package.json 失败: %v", err)
 	}
 
 	// Run npm install
 	if p.verbose {
-		fmt.Println("  Installing dependencies (npm install)...")
+		fmt.Println("  正在安装依赖 (npm install)...")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log("Installing dependencies...")
+		p.interactionHandler.Log("正在安装依赖...")
 	}
 
 	installCmd := exec.Command("npm", "install")
 	installCmd.Dir = projectDir
 	if output, err := installCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("npm install failed: %v\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("npm install 失败: %v\n输出: %s", err, string(output))
 	}
 
 	// Run npm run build
 	if p.verbose {
-		fmt.Println("  Building Slidev project (npm run build)...")
+		fmt.Println("  正在构建 Slidev 项目 (npm run build)...")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log("Building presentation...")
+		p.interactionHandler.Log("正在构建演示文稿...")
 	}
 
 	buildCmd := exec.Command("npm", "run", "build")
 	buildCmd.Dir = projectDir
 	if output, err := buildCmd.CombinedOutput(); err != nil {
-		return "", fmt.Errorf("slidev build failed: %v\nOutput: %s", err, string(output))
+		return "", fmt.Errorf("slidev build 失败: %v\n输出: %s", err, string(output))
 	}
 
 	if p.verbose {
-		fmt.Println("  ✓ Build complete")
+		fmt.Println("  ✓ 构建完成")
 	}
 	if p.interactionHandler != nil {
-		p.interactionHandler.Log("✓ Presentation built successfully")
+		p.interactionHandler.Log("✓ 演示文稿构建成功")
 	}
 
 	return fmt.Sprintf("%sindex.html", basePath), nil
 }
 
-func (p *PPTSubagent) generateSlides(ctx context.Context, content string) ([]Slide, error) {
-	systemPrompt := `You are a professional presentation designer. Your goal is to convert the provided text into a structured slide deck (5-20 slides).
-The design should be modern, concise, and engaging.
+func (p *PPTSubagent) generateSlides(ctx context.Context, content string, images []string) ([]Slide, error) {
+	imagesContext := ""
+	if len(images) > 0 {
+		imagesContext = fmt.Sprintf("\n你可以使用以下来自源材料的图片：\n- %s\n\n在适当的时候，在幻灯片的 'image' 字段中使用这些确切的 URL。如果列表中没有相关的图片，请使用占位符或描述。", strings.Join(images, "\n- "))
+	}
 
-Output ONLY a JSON array of objects, where each object represents a slide with:
-- "title": The slide title.
-- "content": An array of strings (bullet points or short paragraphs).
-- "image": A description of an image that would fit this slide (for future generation) or a placeholder URL.
-- "layout": Suggested layout ("title-center", "split-image-right", "bullets", "quote").
+	systemPrompt := fmt.Sprintf(`你是一位专业的演示文稿设计师。你的目标是将提供的文本转换为结构化的幻灯片（5-20 张）。
+设计应现代、简洁且引人入胜。
+%s
 
-Ensure the first slide is a Title slide and the last is a Thank You/Conclusion slide.
-Keep text concise. Use bullet points where possible.
+仅输出一个 JSON 对象数组，其中每个对象代表一张幻灯片，包含：
+- "title": 幻灯片标题。
+- "content": 字符串数组（要点或短段落）。
+- "image": 适合此幻灯片的图片描述（用于未来生成）或占位符 URL。
+- "layout": 建议的布局 ("title-center", "split-image-right", "bullets", "quote")。
+
+确保第一张幻灯片是标题幻灯片，最后一张是致谢/总结幻灯片。
+保持文本简洁。尽可能使用要点。
 
 Example:
 [
   {"title": "The Future of AI", "content": ["AI is evolving rapidly", "Impact on all industries"], "layout": "title-center"},
   {"title": "Key Trends", "content": ["Generative Models", "Agentic Workflows"], "layout": "bullets"}
-]`
+]`, imagesContext)
 
 	messages := []openai.ChatCompletionMessage{
 		{
@@ -256,7 +276,7 @@ Example:
 		},
 		{
 			Role:    openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("Create a slide deck from this content (Language: Chinese):\n\n%s", content),
+			Content: fmt.Sprintf("根据此内容创建幻灯片（语言：中文）：\n\n%s", content),
 		},
 	}
 
@@ -286,7 +306,7 @@ Example:
 
 	var slides []Slide
 	if err := json.Unmarshal([]byte(jsonContent), &slides); err != nil {
-		return nil, fmt.Errorf("failed to parse slides JSON: %w", err)
+		return nil, fmt.Errorf("解析幻灯片 JSON 失败: %w", err)
 	}
 
 	return slides, nil
