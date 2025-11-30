@@ -26,6 +26,8 @@ var (
 	model   string
 	addr    string
 	verbose bool
+	ppt     bool
+	podcast bool
 )
 
 // WebInteractionHandler implements agent.InteractionHandler for the web interface.
@@ -154,6 +156,8 @@ func main() {
 	rootCmd.Flags().StringVar(&model, "model", os.Getenv("OPENAI_MODEL"), "OpenAI Model")
 	rootCmd.Flags().StringVar(&addr, "addr", "127.0.0.1:8080", "Address to listen on")
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Verbose output")
+	rootCmd.Flags().BoolVar(&ppt, "ppt", false, "Enable PPT generation")
+	rootCmd.Flags().BoolVar(&podcast, "podcast", true, "Enable Podcast generation")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -401,6 +405,14 @@ func runServer(cmd *cobra.Command, args []string) {
 		}
 
 		w.WriteHeader(http.StatusOK)
+	})
+
+	http.HandleFunc("/api/config", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]bool{
+			"ppt":     ppt,
+			"podcast": podcast,
+		})
 	})
 
 	fmt.Printf("Starting server on http://%s\n", addr)

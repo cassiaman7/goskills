@@ -1,5 +1,7 @@
 # Go Claude Skills Parser
 
+English | [简体中文](README_CN.md)
+
 A Go package to parse Claude Skill packages from a directory structure. This parser is designed according to the specifications found in the [official Claude documentation](https://docs.claude.com/en/docs/agents-and-tools/agent-skills/).
 
 [![License](https://img.shields.io/:license-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![GoDoc](https://godoc.org/github.com/smallnest/goskills?status.png)](http://godoc.org/github.com/smallnest/goskills)  [![github actions](https://github.com/smallnest/goskills/actions/workflows/go.yml/badge.svg)](https://github.com/smallnest/goskills/actions) [![Go Report Card](https://goreportcard.com/badge/github.com/smallnest/goskills)](https://goreportcard.com/report/github.com/smallnest/goskills) 
@@ -14,6 +16,7 @@ A Go package to parse Claude Skill packages from a directory structure. This par
 - Discovers resource files in `scripts/`, `references/`, and `assets/` directories.
 - Packaged as a reusable Go module.
 - Includes command-line interfaces for managing and inspecting skills.
+- Includes a deep research agent.
 
 ## Installation 
 
@@ -23,64 +26,29 @@ To use this package in your project, you can use `go get`:
 go get github.com/smallnest/goskills
 ```
 
-## Library Usage
+## Deep Research Agent
 
-Here is an example of how to use the `ParseSkillPackage` function from the `goskills` library to parse a skill directory.
+This project includes a standalone Deep Research Agent (`agent-web`) that demonstrates the power of composable AI skills.
 
-```go
-package main
+- **Planner-Executor-SubAgents Architecture**: A robust design for complex task solving.
+- **Web Interface**: A modern web interface for a great user experience.
+- **No External Frameworks**: Pure Go implementation, easy to understand and extend.
 
-import (
-	"fmt"
-	"log"
+![Agent Workflow](docs/images/agent_worflow.png)
+![Agent Web Interface](docs/images/agent_web.png)
 
-	"github.com/smallnest/goskills"
-)
+**Demo**：[https://agent.rpcx.io](https://agent.rpcx.io)
 
-func main() {
-	// Path to the skill directory you want to parse
-	skillDirectory := "./examples/skills/artifacts-builder"
+Quick Start:
 
-	skillPackage, err := goskills.ParseSkillPackage(skillDirectory)
-	if err != nil {
-		log.Fatalf("Failed to parse skill package: %v", err)
-	}
-
-	// Print the parsed information
-	fmt.Printf("Successfully Parsed Skill: %s\n", skillPackage.Meta.Name)
-	// ... and so on
-}
+```shell
+export OPENAI_API_KEY="YOUR_KEY"
+export TAVILY_API_KEY="YOUR_TAVILY_KEY"
+make
+./agent-web -v
 ```
 
-### ParseSkillPackages
-
-To find and parse all valid skill packages within a directory and its subdirectories, you can use the `ParseSkillPackages` function. It recursively scans the given path, identifies all directories containing a `SKILL.md` file, and returns a slice of successfully parsed `*SkillPackage` objects.
-
-```go
-package main
-
-import (
-	"fmt"
-	"log"
-
-	"github.com/smallnest/goskills"
-)
-
-func main() {
-	// Directory containing all your skills
-	skillsRootDirectory := "./examples/skills"
-
-	packages, err := goskills.ParseSkillPackages(skillsRootDirectory)
-	if err != nil {
-		log.Fatalf("Failed to parse skill packages: %v", err)
-	}
-
-	fmt.Printf("Found %d skill(s):\n", len(packages))
-	for _, pkg := range packages {
-		fmt.Printf("- Path: %s, Name: %s\n", pkg.Path, pkg.Meta.Name)
-	}
-}
-```
+For more details, see  [agent.md](agent.md).
 
 ## Command-Line Interfaces
 
@@ -169,41 +137,63 @@ export OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ./goskills run --auto-approve --model deepseek-v3 --api-base https://qianfan.baidubce.com/v2 --skills-dir=./examples/skills "使用markitdown 工具解析网 页 https://baike.baidu.com/item/%E5%AD%94%E5%AD%90/1584" -l
 ```
 
-### 3. Deep Research Agent CLI (`agent-cli`)
+## Library Usage
 
-Located in `cmd/agent-cli`, this is a powerful, pure Go implementation of a Deep Research Agent. It does not rely on any third-party agent frameworks (like LangChain), offering a lightweight and transparent "Planner-Executor-SubAgents" architecture.
+Here is an example of how to use the `ParseSkillPackage` function from the `goskills` library to parse a skill directory.
 
-#### Features
-- **Autonomous Planning**: Decomposes user requests into search, analysis, and reporting tasks.
-- **Deep Search**: Integrates with Tavily for real-time internet search.
-- **Intelligent Analysis**: Synthesizes information from multiple sources.
-- **TUI Interface**: A beautiful, terminal-based user interface built with `bubbletea`.
+```go
+package main
 
-#### Building `agent-cli`
-```shell
-go build -o agent-cli ./cmd/agent-cli
+import (
+	"fmt"
+	"log"
+
+	"github.com/smallnest/goskills"
+)
+
+func main() {
+	// Path to the skill directory you want to parse
+	skillDirectory := "./examples/skills/artifacts-builder"
+
+	skillPackage, err := goskills.ParseSkillPackage(skillDirectory)
+	if err != nil {
+		log.Fatalf("Failed to parse skill package: %v", err)
+	}
+
+	// Print the parsed information
+	fmt.Printf("Successfully Parsed Skill: %s\n", skillPackage.Meta.Name)
+	// ... and so on
+}
 ```
 
-#### Usage
-Set your environment variables:
-```shell
-export OPENAI_API_KEY="YOUR_KEY"
-export TAVILY_API_KEY="YOUR_TAVILY_KEY"
-```
+### ParseSkillPackages
 
-Run the agent:
-```shell
-./agent-cli
-```
+To find and parse all valid skill packages within a directory and its subdirectories, you can use the `ParseSkillPackages` function. It recursively scans the given path, identifies all directories containing a `SKILL.md` file, and returns a slice of successfully parsed `*SkillPackage` objects.
 
-For a detailed introduction and implementation principles, please refer to [agent.md](agent.md).
+```go
+package main
 
-## Running Tests
+import (
+	"fmt"
+	"log"
 
-To run the tests for this package, navigate to the project root directory and run:
+	"github.com/smallnest/goskills"
+)
 
-```shell
-go test
+func main() {
+	// Directory containing all your skills
+	skillsRootDirectory := "./examples/skills"
+
+	packages, err := goskills.ParseSkillPackages(skillsRootDirectory)
+	if err != nil {
+		log.Fatalf("Failed to parse skill packages: %v", err)
+	}
+
+	fmt.Printf("Found %d skill(s):\n", len(packages))
+	for _, pkg := range packages {
+		fmt.Printf("- Path: %s, Name: %s\n", pkg.Path, pkg.Meta.Name)
+	}
+}
 ```
 
 ## Installation

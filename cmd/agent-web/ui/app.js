@@ -32,6 +32,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const pptCheckbox = document.getElementById('ppt-checkbox');
     const podcastCheckbox = document.getElementById('podcast-checkbox');
 
+    // Fetch config
+    fetch('/api/config')
+        .then(response => response.json())
+        .then(config => {
+            if (config.ppt) {
+                pptCheckbox.disabled = false;
+            }
+            if (config.podcast) {
+                podcastCheckbox.disabled = false;
+            }
+        })
+        .catch(err => console.error('Failed to load config:', err));
+
     // ... (existing code)
 
     // Handle form submission
